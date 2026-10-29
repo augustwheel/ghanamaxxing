@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Ghanamaxxing palette — dark first, Ghana accents used sparingly. */
+@theme {
+  --color-ink: #0a0a0b;
+  --color-surface: #141416;
+  --color-surface-2: #1e1e21;
+  --color-line: #2a2a2e;
+  --color-cream: #f5f1e8;
+  --color-muted: #a39e93;
+  --color-gold: #f4b400;
+  --color-red: #e23b2e;
+  --color-green: #1e9e5a;
+}
+
+/* inline: font variables are set on <body> by next/font, so resolve them where used. */
+@theme inline {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-face), "Arial Narrow", Impact, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-cream);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
