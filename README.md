@@ -16,8 +16,8 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. **Before Supabase is connected, the site shows the example launches** from
-`data/sample-launches.json`, so you can preview the UI. Sign-in and admin need Supabase.
+Open http://localhost:3000. **Before Supabase is connected, the site shows the real seed launches** from
+`data/seed-launches.json`, so you can preview the UI. Sign-in and admin need Supabase.
 
 ## Connect Supabase (one-time setup)
 
@@ -67,8 +67,17 @@ npm run seed -- data/my-launches.csv --commit   # save to the database
 ### File format
 
 Start from `data/launches-template.csv`. JSON is an array of objects with the same keys, or
-`{ "launches": [...] }`. The maker links can also go in a nested `maker_socials` object; see
-`data/sample-launches.json`.
+`{ "launches": [...] }`. The maker links can also go in a nested `maker_socials` object.
+
+`data/seed-launches.json` is the starter list of real Ghanaian products (44, each checked live, with its own
+icon saved in `public/logos/`). Load it once Supabase is connected:
+
+```bash
+npm run seed -- data/seed-launches.json --commit
+```
+
+Launches given only a city or area are spread a little around that place so pins don't stack; set exact
+`lat`/`lng` to place one precisely.
 
 | Column | Required | Notes |
 |---|---|---|
@@ -77,7 +86,7 @@ Start from `data/launches-template.csv`. JSON is an array of objects with the sa
 | `url` | ✔ | must start with `https://` or `http://` |
 | `type` | ✔ | `AI`, `Fintech`, `Games`, `Edtech`, `Creative`, `Student projects`, `Other` (label or value, any case) |
 | `description` | | max 800 |
-| `logo_url`, `image_url` | | public image URLs (square logo, 16:9 screenshot) |
+| `logo_url`, `image_url` | | image URLs, or paths on this site like `/logos/hubtel.webp` (square logo, 16:9 screenshot) |
 | `city` | | city or Accra area. Known places (see `src/config/places.ts`) fill in coordinates automatically |
 | `lat`, `lng` | | override coordinates |
 | `maker_name` | | |

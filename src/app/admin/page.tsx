@@ -17,7 +17,7 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
   const [{ data: launches, error }, counts] = await Promise.all([
     supabase
       .from("launches")
-      .select("id, slug, name, type, city, source, status, vote_count, launched_at, created_at")
+      .select("id, slug, name, type, city, source, status, star_count, launched_at, created_at")
       .eq("status", status)
       .order("created_at", { ascending: false })
       .limit(500),
@@ -39,7 +39,7 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
             href={`/admin?status=${s}`}
             aria-current={s === status ? "page" : undefined}
             className={`rounded-full border px-3 py-1.5 text-sm capitalize ${
-              s === status ? "border-cream bg-cream text-ink" : "border-line text-muted hover:text-cream"
+              s === status ? "border-chalk bg-surface-2 text-chalk" : "border-line text-muted hover:text-chalk"
             }`}
           >
             {s} <span className="tabular-nums opacity-70">{n}</span>
@@ -57,23 +57,23 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
                 <th className="py-2 pr-4 font-normal">Launch</th>
                 <th className="py-2 pr-4 font-normal">Type</th>
                 <th className="py-2 pr-4 font-normal">Source</th>
-                <th className="py-2 pr-4 font-normal">Votes</th>
+                <th className="py-2 pr-4 font-normal">Stars</th>
                 <th className="py-2 pr-4 font-normal">Launched</th>
                 <th className="py-2 font-normal">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(launches as Pick<Launch, "id" | "slug" | "name" | "type" | "city" | "source" | "vote_count" | "launched_at">[]).map((l) => (
+              {(launches as Pick<Launch, "id" | "slug" | "name" | "type" | "city" | "source" | "star_count" | "launched_at">[]).map((l) => (
                 <tr key={l.id} className="border-b border-line/50">
                   <td className="py-2 pr-4">
-                    <Link href={`/launch/${l.slug}`} className="font-medium hover:text-gold">
+                    <Link href={`/launch/${l.slug}`} className="font-medium hover:text-chalk">
                       {l.name}
                     </Link>
                     <div className="text-xs text-muted">{l.city ?? "No location"}</div>
                   </td>
                   <td className="py-2 pr-4"><TypeChip type={l.type} /></td>
                   <td className="py-2 pr-4 text-muted">{l.source}</td>
-                  <td className="py-2 pr-4 tabular-nums">{l.vote_count}</td>
+                  <td className="py-2 pr-4 tabular-nums">{l.star_count}</td>
                   <td className="py-2 pr-4 text-muted">{formatDate(l.launched_at) ?? "—"}</td>
                   <td className="py-2">
                     <div className="flex gap-2">
@@ -81,7 +81,7 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
                         <form key={s} action={setLaunchStatus}>
                           <input type="hidden" name="id" value={l.id} />
                           <input type="hidden" name="status" value={s} />
-                          <button className="rounded-full border border-line px-2.5 py-1 text-xs capitalize hover:border-cream">
+                          <button className="rounded-full border border-line px-2.5 py-1 text-xs capitalize hover:border-chalk">
                             {s === "approved" ? "Approve" : s === "rejected" ? "Reject" : "Remove"}
                           </button>
                         </form>

@@ -18,6 +18,12 @@ const optionalUrl = z.preprocess(
   z.string().trim().regex(/^https?:\/\/\S+$/i, "must start with http:// or https://").optional(),
 );
 
+// Logos and screenshots may also be paths on this site, e.g. /logos/hubtel.webp.
+const optionalImage = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z.string().trim().regex(/^(https?:\/\/|\/)\S+$/i, "must be a full URL or a path starting with /").optional(),
+);
+
 const optionalNumber = (min: number, max: number) =>
   z.preprocess(
     (v) => (v === "" || v === null || v === undefined ? undefined : Number(v)),
@@ -41,8 +47,8 @@ export const launchInputSchema = z.object({
   tagline: z.string().trim().min(1, "is required").max(100),
   description: optionalText(800),
   url: z.string().trim().regex(/^https?:\/\/\S+$/i, "must start with http:// or https://"),
-  logo_url: optionalUrl,
-  image_url: optionalUrl,
+  logo_url: optionalImage,
+  image_url: optionalImage,
   type: launchType,
   city: optionalText(80),
   lat: optionalNumber(-90, 90),
@@ -151,7 +157,7 @@ export function prepareSeedLaunches(
     let { lat, lng } = d;
     if (lat === undefined || lng === undefined) {
       const place = findPlace(d.city);
-      if (place) ({ lat, lng } = place);
+      if (place) ({ lat, lng } = spread(place, wantedSlug));
     }
 
     const socials: MakerSocials = {};
@@ -179,6 +185,18 @@ export function prepareSeedLaunches(
   });
 
   return result;
+}
+
+// Launches placed only by city/area would all share one point and stack on the map. Nudge each
+// one by a fixed amount derived from its slug (same every import) within the place's radius.
+function spread(place: { lat: number; lng: number; radiusKm: number }, key: string) {
+  let h = 2166136261;
+  for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  const angle = ((h & 0xffff) / 0xffff) * Math.PI * 2;
+  const dist = Math.sqrt((h >>> 16) / 0xffff) * place.radiusKm;
+  const lat = place.lat + (dist / 111) * Math.sin(angle);
+  const lng = place.lng + (dist / (111 * Math.cos((place.lat * Math.PI) / 180))) * Math.cos(angle);
+  return { lat: Math.round(lat * 1e5) / 1e5, lng: Math.round(lng * 1e5) / 1e5 };
 }
 
 export function normaliseUrl(url: string) {

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Lets a production build run alongside `npm run dev` without clobbering its .next folder.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   images: {
     // Logos and screenshots come from Supabase Storage or makers' own sites.
     remotePatterns: [{ protocol: "https", hostname: "**" }],

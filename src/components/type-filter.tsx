@@ -1,25 +1,41 @@
 import Link from "next/link";
 import { LAUNCH_TYPES } from "@/config/launch-types";
 
-export function TypeFilter({ active, basePath }: { active?: string; basePath: string }) {
-  const chip = (href: string, label: string, selected: boolean, color?: string) => (
-    <Link
-      key={href}
-      href={href}
-      scroll={false}
-      aria-current={selected ? "page" : undefined}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-        selected ? "border-cream bg-cream text-ink" : "border-line text-muted hover:border-muted hover:text-cream"
-      }`}
-    >
-      {color && <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: color }} />}
-      {label}
-    </Link>
-  );
+// Type chips, coloured like the map's. `params` keeps other query values (e.g. the ranking tab).
+export function TypeFilter({ active, basePath, params = {} }: { active?: string; basePath: string; params?: Record<string, string> }) {
+  const href = (type?: string) => {
+    const q = new URLSearchParams(params);
+    if (type) q.set("type", type);
+    const s = q.toString();
+    return s ? `${basePath}?${s}` : basePath;
+  };
   return (
     <nav aria-label="Filter by type" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
-      {chip(basePath, "All", !active)}
-      {LAUNCH_TYPES.map((t) => chip(`${basePath}?type=${t.value}`, t.label, active === t.value, t.color))}
+      <Link
+        href={href()}
+        scroll={false}
+        aria-current={!active ? "page" : undefined}
+        className={`shrink-0 rounded-full px-4 py-2 font-display text-[15px] font-semibold transition-colors ${
+          !active ? "bg-surface-2 text-chalk" : "text-muted hover:text-chalk"
+        }`}
+      >
+        All types
+      </Link>
+      {LAUNCH_TYPES.map((t) => {
+        const on = active === t.value;
+        return (
+          <Link
+            key={t.value}
+            href={href(t.value)}
+            scroll={false}
+            aria-current={on ? "page" : undefined}
+            className="shrink-0 rounded-full px-4 py-2 font-display text-[15px] font-semibold transition-opacity hover:opacity-100"
+            style={{ color: t.color, background: on ? `${t.color}2e` : "transparent", opacity: on ? 1 : 0.75 }}
+          >
+            {t.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

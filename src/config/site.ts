@@ -2,12 +2,12 @@ export const SITE = {
   name: "Ghanamaxxing",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   description:
-    "The launch board and live map of what Ghanaians are building. Post your startup, app, side project, AI tool or game, and back the builders you believe in.",
-  contactEmail: "hello@ghanamaxxing.com",
+    "A place to discover and back the apps and startups coming out of Ghana. Star the ones you love and find the builders on the map.",
+  contactEmail: "theteam@augustwheel.com",
   nav: [
-    { href: "/launches", label: "Launches" },
+    { href: "/launches", label: "Explore" },
     { href: "/map", label: "Map" },
-    { href: "/submit", label: "Submit" },
+    { href: "/submit", label: "Add yours" },
   ],
   footer: [
     { href: "/about", label: "About" },

@@ -34,13 +34,13 @@ export function ImportForm() {
           name="file"
           accept=".csv,.json,text/csv,application/json"
           required
-          className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-surface-2 file:px-4 file:py-2 file:text-cream"
+          className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-surface-2 file:px-4 file:py-2 file:text-chalk"
         />
         <button
           name="intent"
           value="preview"
           disabled={pending}
-          className="rounded-full bg-cream px-4 py-2 text-sm font-medium text-ink hover:bg-gold disabled:opacity-60"
+          className="btn !py-2 text-sm"
         >
           {pending ? "Checking…" : "Preview"}
         </button>
@@ -74,7 +74,7 @@ export function ImportForm() {
                 name="intent"
                 value="commit"
                 disabled={pending}
-                className="rounded-full bg-gold px-5 py-2.5 font-semibold text-ink hover:bg-cream disabled:opacity-60"
+                className="btn"
               >
                 {pending ? "Importing…" : `Import ${state.ready?.length} launches`}
               </button>

@@ -1,13 +1,13 @@
 // The single place to add, rename or recolour launch types.
 // `value` is what's stored in the database — don't change it once launches use it.
 export const LAUNCH_TYPES = [
-  { value: "ai", label: "AI", color: "#8B5CF6" },
-  { value: "fintech", label: "Fintech", color: "#F4B400" },
-  { value: "games", label: "Games", color: "#E23B2E" },
-  { value: "edtech", label: "Edtech", color: "#3B82F6" },
-  { value: "creative", label: "Creative", color: "#EC4899" },
-  { value: "student", label: "Student projects", color: "#1E9E5A" },
-  { value: "other", label: "Other", color: "#9CA3AF" },
+  { value: "ai", label: "AI", color: "#A78BFA" },
+  { value: "fintech", label: "Fintech", color: "#34D399" },
+  { value: "games", label: "Games", color: "#F87171" },
+  { value: "edtech", label: "Edtech", color: "#60A5FA" },
+  { value: "creative", label: "Creative", color: "#F472B6" },
+  { value: "student", label: "Student projects", color: "#FB923C" },
+  { value: "other", label: "Other", color: "#A1A1AA" },
 ] as const;
 
 export type LaunchType = (typeof LAUNCH_TYPES)[number]["value"];

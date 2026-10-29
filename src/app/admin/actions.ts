@@ -131,3 +131,16 @@ export async function setLaunchStatus(formData: FormData) {
   revalidatePath("/admin");
   revalidatePublic();
 }
+
+// ─── Suggestions ──────────────────────────────────────────────────────────
+
+// Suggestions are free text, so the admin makes any edit by hand, then marks it done (or rejects it).
+// Nothing is deleted, so there's a history.
+export async function reviewSuggestion(formData: FormData) {
+  const { supabase } = await requireAdmin("/admin/suggestions");
+  const id = String(formData.get("id"));
+  const status = formData.get("decision") === "done" ? "approved" : "rejected";
+  const { error } = await supabase.from("suggestions").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+  revalidatePath("/admin/suggestions");
+}

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
-import { TypeChip } from "@/components/type-chip";
+import { StarIcon } from "@/components/star-icon";
 import { getLaunchType } from "@/config/launch-types";
-import { formatDate, plural } from "@/lib/format";
+import { plural } from "@/lib/format";
 import { getLaunchBySlug } from "@/lib/launches";
 import type { MakerSocials } from "@/lib/types";
 
@@ -44,76 +44,80 @@ export default async function LaunchPage({ params }: Props) {
   const socials = Object.entries(launch.maker_socials ?? {}).filter(([, url]) => url) as [keyof MakerSocials, string][];
 
   return (
-    <article className="mx-auto max-w-3xl px-4 pt-10">
-      <Link href={`/launches?type=${type.value}`} className="text-sm text-muted hover:text-cream">
-        ← {type.label} launches
-      </Link>
+    <article className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-35"
+        style={{ background: `radial-gradient(50% 60% at 50% 0%, ${type.color}, transparent 70%)` }}
+      />
+      <div className="relative mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
+        <Link href={`/launches?type=${type.value}`} className="font-display font-semibold text-muted hover:text-chalk">
+          More {type.label} launches
+        </Link>
 
-      <header className="mt-6 flex items-start gap-4 sm:gap-6">
-        <LaunchLogo name={launch.name} logoUrl={launch.logo_url} type={launch.type} size={80} priority />
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display text-4xl leading-none tracking-wide break-words sm:text-5xl">
-            {launch.name.toUpperCase()}
-          </h1>
-          <p className="mt-2 text-lg text-cream/90">{launch.tagline}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <TypeChip type={launch.type} />
-            <SourceLabel source={launch.source} claimed={Boolean(launch.claimed_by)} />
+        <header className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
+          <LaunchLogo name={launch.name} logoUrl={launch.logo_url} type={launch.type} size={112} priority />
+          <div className="min-w-0">
+            <h1 className="font-display text-5xl leading-[0.95] font-bold tracking-tight break-words sm:text-6xl">{launch.name}</h1>
+            <p className="mt-3 text-xl text-chalk/85 text-pretty">{launch.tagline}</p>
+            <p className="mt-3 text-sm">
+              <span style={{ color: type.color }}>{type.label}</span>
+              {launch.city && <span className="text-muted"> in {launch.city}</span>}
+            </p>
+            <p className="mt-1 text-sm">
+              <SourceLabel source={launch.source} claimed={Boolean(launch.claimed_by)} />
+            </p>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <a
-          href={launch.url}
-          target="_blank"
-          rel="noopener"
-          className="rounded-full bg-gold px-5 py-2.5 font-semibold text-ink transition-colors hover:bg-cream"
-        >
-          Visit {launch.name} ↗
-        </a>
-        <span className="rounded-full border border-line px-5 py-2.5 text-cream">
-          ▲ {plural(launch.vote_count, "vote")}
-        </span>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <a href={launch.url} target="_blank" rel="noopener" className="btn !px-6 !py-3 text-lg">
+            Visit {launch.name}
+          </a>
+          <span className="btn-quiet !px-5 !py-3 text-lg" title="Starring opens soon">
+            <StarIcon className="h-4 w-4" />
+            {plural(launch.star_count, "star")}
+          </span>
+        </div>
+
+        {launch.image_url && (
+          <div className="relative mt-10 aspect-video overflow-hidden rounded-[2rem] bg-coal shadow-2xl">
+            <Image
+              src={launch.image_url}
+              alt={`Screenshot of ${launch.name}`}
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+            />
+          </div>
+        )}
+
+        {launch.description && (
+          <p className="mt-10 max-w-[65ch] text-lg leading-relaxed whitespace-pre-line text-chalk/90">{launch.description}</p>
+        )}
+
+        {(launch.maker_name || socials.length > 0) && (
+          <p className="mt-8 text-muted">
+            {launch.maker_name && (
+              <>
+                Made by <span className="font-display font-semibold text-chalk">{launch.maker_name}</span>
+              </>
+            )}
+            {socials.map(([key, url]) => (
+              <a key={key} href={url} target="_blank" rel="noopener nofollow" className="ml-3 underline decoration-line underline-offset-4 hover:text-chalk hover:decoration-chalk">
+                {SOCIAL_LABELS[key] ?? key}
+              </a>
+            ))}
+          </p>
+        )}
+
+        <p className="mt-10 text-sm text-muted">
+          Something wrong or missing?{" "}
+          <Link href={`/launch/${launch.slug}/suggest`} className="underline decoration-line underline-offset-4 hover:text-chalk hover:decoration-chalk">
+            Suggest an edit
+          </Link>
+        </p>
       </div>
-
-      {launch.image_url && (
-        <div className="relative mt-8 aspect-video overflow-hidden rounded-2xl border border-line bg-surface">
-          <Image
-            src={launch.image_url}
-            alt={`Screenshot of ${launch.name}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 768px"
-            className="object-cover"
-          />
-        </div>
-      )}
-
-      {launch.description && <p className="mt-8 text-lg leading-relaxed whitespace-pre-line">{launch.description}</p>}
-
-      <dl className="mt-10 grid grid-cols-1 gap-4 rounded-2xl border border-line bg-surface p-5 text-sm sm:grid-cols-3">
-        <div>
-          <dt className="text-muted">Made by</dt>
-          <dd className="mt-1 text-cream">{launch.maker_name ?? "—"}</dd>
-          {socials.length > 0 && (
-            <dd className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-              {socials.map(([key, url]) => (
-                <a key={key} href={url} target="_blank" rel="noopener nofollow" className="text-gold hover:underline">
-                  {SOCIAL_LABELS[key] ?? key}
-                </a>
-              ))}
-            </dd>
-          )}
-        </div>
-        <div>
-          <dt className="text-muted">Based in</dt>
-          <dd className="mt-1 text-cream">{launch.city ?? "Ghana"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Launched</dt>
-          <dd className="mt-1 text-cream">{formatDate(launch.launched_at) ?? "—"}</dd>
-        </div>
-      </dl>
     </article>
   );
 }

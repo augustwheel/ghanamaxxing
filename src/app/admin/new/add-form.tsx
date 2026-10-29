@@ -6,12 +6,12 @@ import { LAUNCH_TYPES } from "@/config/launch-types";
 import { PLACES } from "@/config/places";
 
 const input =
-  "mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-cream placeholder:text-muted/60 focus:border-gold focus:outline-none";
+  "mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-chalk placeholder:text-muted/60 focus:border-muted focus:outline-none";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block text-sm">
-      <span className="text-cream">{label}</span>
+      <span className="text-chalk">{label}</span>
       {hint && <span className="ml-2 text-muted">{hint}</span>}
       {children}
     </label>
@@ -90,14 +90,14 @@ export function AddLaunchForm() {
         </Field>
       </div>
       <fieldset className="grid gap-3 sm:grid-cols-2">
-        <legend className="mb-2 text-sm text-cream">Maker links (optional)</legend>
+        <legend className="mb-2 text-sm text-chalk">Maker links (optional)</legend>
         {(["x", "instagram", "linkedin", "github", "tiktok", "website"] as const).map((k) => (
           <input key={k} name={`maker_${k}`} type="url" placeholder={`${k === "x" ? "X" : k[0].toUpperCase() + k.slice(1)} URL`} className={input} aria-label={`Maker ${k} URL`} />
         ))}
       </fieldset>
       <button
         disabled={pending}
-        className="rounded-full bg-gold px-5 py-2.5 font-semibold text-ink hover:bg-cream disabled:opacity-60"
+        className="btn"
       >
         {pending ? "Saving…" : "Add launch"}
       </button>

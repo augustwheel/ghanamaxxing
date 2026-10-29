@@ -1,42 +1,84 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LaunchCard } from "@/components/launch-card";
 import { TypeFilter } from "@/components/type-filter";
 import { getLaunchType } from "@/config/launch-types";
+import { LockedBoard } from "@/components/home/rankings-preview";
+import { BOARD_TABS, computeBoards, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
 
 export const revalidate = 60;
 
-type Props = { searchParams: Promise<{ type?: string | string[] }> };
+type Props = { searchParams: Promise<{ type?: string | string[]; board?: string | string[] }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const type = parseTypeParam((await searchParams).type);
-  const label = type ? `${getLaunchType(type).label} launches` : "Launches";
+  const sp = await searchParams;
+  const type = parseTypeParam(sp.type);
+  const tab = BOARD_TABS.find((t) => t.id === parseBoardParam(sp.board))!;
+  const title = type ? `${tab.label}: ${getLaunchType(type).label}` : tab.label;
   return {
-    title: label,
-    description: `${label} from Ghanaian builders: startups, apps, side projects, AI tools and games.`,
-    alternates: { canonical: type ? `/launches?type=${type}` : "/launches" },
+    title,
+    description: `${title} on Ghanamaxxing: startups, apps, side projects, AI tools and games from Ghanaian builders.`,
+    alternates: { canonical: `/launches?board=${tab.id}${type ? `&type=${type}` : ""}` },
   };
 }
 
 export default async function LaunchesPage({ searchParams }: Props) {
-  const type = parseTypeParam((await searchParams).type);
+  const sp = await searchParams;
+  const type = parseTypeParam(sp.type);
+  const tabId = parseBoardParam(sp.board);
+  const tab = BOARD_TABS.find((t) => t.id === tabId)!;
   const launches = await getApprovedLaunches({ type });
+  const board = computeBoards(launches, 200)[tabId];
+  const ranked = board.launches;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-10">
-      <h1 className="font-display text-5xl tracking-wide sm:text-6xl">LAUNCHES</h1>
-      <p className="mt-2 text-muted">Newest first. Rankings and voting arrive in the next phase.</p>
-      <div className="mt-6">
-        <TypeFilter active={type} basePath="/launches" />
+    <div className="mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
+      <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">Launches</h1>
+      <p className="mt-3 max-w-xl text-lg text-muted">
+        Apps and startups from across Ghana. Browse what&apos;s new, star what you like, and dig up the rare finds.
+      </p>
+
+      <nav aria-label="Boards" className="mt-8 flex gap-1 overflow-x-auto rounded-full bg-surface p-1.5 [scrollbar-width:none]">
+        {BOARD_TABS.map((t) => {
+          const q = new URLSearchParams({ board: t.id, ...(type ? { type } : {}) });
+          const on = t.id === tabId;
+          return (
+            <Link
+              key={t.id}
+              href={`/launches?${q}`}
+              scroll={false}
+              aria-current={on ? "page" : undefined}
+              className={`shrink-0 flex-1 rounded-full px-4 py-2.5 text-center font-display font-semibold whitespace-nowrap transition-colors ${
+                on ? "btn !py-2.5" : "text-muted hover:text-chalk"
+              }`}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="mt-4">
+        <TypeFilter active={type} basePath="/launches" params={{ board: tabId }} />
       </div>
-      {launches.length ? (
-        <ol className="mt-6 flex flex-col gap-1">
-          {launches.map((launch) => (
-            <LaunchCard key={launch.id} launch={launch} />
+
+      <p className="mt-6 px-2 text-sm text-muted">{tab.blurb}</p>
+      {board.locked ? (
+        <div className="mt-2 flex">
+          <LockedBoard {...board.locked} />
+        </div>
+      ) : ranked.length ? (
+        <ol className="mt-2 flex flex-col">
+          {ranked.map((launch, i) => (
+            <LaunchCard key={launch.id} launch={launch} rank={i + 1} />
           ))}
         </ol>
       ) : (
-        <p className="mt-16 text-center text-muted">Nothing here yet. Be the first to launch.</p>
+        <div className="mt-6 rounded-[2rem] bg-surface px-6 py-12 text-center">
+          <p className="font-display text-2xl font-semibold">Nothing here yet</p>
+          <p className="mt-2 text-muted">Be the first {type ? getLaunchType(type).label : ""} launch on this board.</p>
+          <Link href="/submit" className="btn mt-6">Post your launch</Link>
+        </div>
       )}
     </div>
   );

@@ -77,7 +77,7 @@ create table public.launches (
   claimed_by uuid references public.profiles (id) on delete set null,
   -- When the launch counts as "launched" for rankings. Set on approval, or by admin on import.
   launched_at timestamptz,
-  vote_count integer not null default 0,
+  star_count integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -134,14 +134,14 @@ begin
     new.submitted_by := auth.uid();
     new.claimed_by := null;
     new.launched_at := null;
-    new.vote_count := 0;
+    new.star_count := 0;
   else
     new.status := old.status;
     new.source := old.source;
     new.submitted_by := old.submitted_by;
     new.claimed_by := old.claimed_by;
     new.launched_at := old.launched_at;
-    new.vote_count := old.vote_count;
+    new.star_count := old.star_count;
     new.slug := old.slug;
   end if;
   return new;
@@ -152,22 +152,22 @@ create trigger launches_guard_fields
   before insert or update on public.launches
   for each row execute function public.guard_launch_fields();
 
--- ─── Votes ────────────────────────────────────────────────────────────────
-create table public.votes (
+-- ─── Stars ────────────────────────────────────────────────────────────────
+create table public.stars (
   launch_id uuid not null references public.launches (id) on delete cascade,
   user_id uuid not null references public.profiles (id) on delete cascade,
   created_at timestamptz not null default now(),
-  -- Soft-removed by admin (suspicious votes). Removed votes never count.
+  -- Soft-removed by admin (suspicious stars). Removed stars never count.
   removed_at timestamptz,
   removed_reason text,
   primary key (launch_id, user_id)
 );
 
-create index votes_launch_created_idx on public.votes (launch_id, created_at desc) where removed_at is null;
-create index votes_user_created_idx on public.votes (user_id, created_at desc);
+create index stars_launch_created_idx on public.stars (launch_id, created_at desc) where removed_at is null;
+create index stars_user_created_idx on public.stars (user_id, created_at desc);
 
--- Keep launches.vote_count equal to the number of active votes.
-create function public.sync_vote_count()
+-- Keep launches.star_count equal to the number of active stars.
+create function public.sync_star_count()
 returns trigger
 language plpgsql
 security definer
@@ -177,8 +177,8 @@ declare
   target uuid := coalesce(new.launch_id, old.launch_id);
 begin
   update public.launches
-     set vote_count = (
-       select count(*) from public.votes v
+     set star_count = (
+       select count(*) from public.stars v
         where v.launch_id = target and v.removed_at is null
      )
    where id = target;
@@ -186,13 +186,14 @@ begin
 end;
 $$;
 
-create trigger votes_sync_count
-  after insert or delete or update of removed_at on public.votes
-  for each row execute function public.sync_vote_count();
+create trigger stars_sync_count
+  after insert or delete or update of removed_at on public.stars
+  for each row execute function public.sync_star_count();
 
 -- ─── Spotlights ───────────────────────────────────────────────────────────
+-- Star of the week: one row per week, keyed by that week's Monday.
 create table public.spotlights (
-  day date primary key,
+  week_start date primary key check (extract(isodow from week_start) = 1),
   launch_id uuid not null references public.launches (id) on delete cascade,
   picked_by text not null default 'auto' check (picked_by in ('auto', 'admin')),
   created_at timestamptz not null default now()
@@ -239,7 +240,7 @@ create table public.hubs (
 -- ─── Row-level security ───────────────────────────────────────────────────
 alter table public.profiles enable row level security;
 alter table public.launches enable row level security;
-alter table public.votes enable row level security;
+alter table public.stars enable row level security;
 alter table public.spotlights enable row level security;
 alter table public.claims enable row level security;
 alter table public.removal_requests enable row level security;
@@ -259,17 +260,17 @@ create policy "owners edit their launches" on public.launches for update
   to authenticated using (submitted_by = auth.uid() or claimed_by = auth.uid() or public.is_admin());
 create policy "admin deletes launches" on public.launches for delete using (public.is_admin());
 
--- Votes: counts are public; users add/remove only their own (rules tightened in phase 2).
-create policy "votes are public" on public.votes for select using (removed_at is null or public.is_admin());
-create policy "users vote" on public.votes for insert to authenticated
+-- Stars: counts are public; users add/remove only their own (rules tightened in phase 2).
+create policy "stars are public" on public.stars for select using (removed_at is null or public.is_admin());
+create policy "users star" on public.stars for insert to authenticated
   with check (
     user_id = auth.uid()
     and removed_at is null
     and exists (select 1 from public.launches l where l.id = launch_id and l.status = 'approved')
   );
-create policy "users unvote" on public.votes for delete to authenticated
+create policy "users unstar" on public.stars for delete to authenticated
   using (user_id = auth.uid() and removed_at is null);
-create policy "admin moderates votes" on public.votes for update using (public.is_admin());
+create policy "admin moderates stars" on public.stars for update using (public.is_admin());
 
 -- Spotlights: public read, admin writes (auto-pick runs as security definer in phase 2).
 create policy "spotlights are public" on public.spotlights for select using (true);

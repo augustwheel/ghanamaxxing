@@ -1,22 +1,25 @@
 @import "tailwindcss";
 
-/* Ghanamaxxing palette — dark first, Ghana accents used sparingly. */
+/*
+ * Ghanamaxxing: shades of black. The letters are glossy black, the base is graphite, panels are
+ * deeper black. Colour only comes from the characters and the launch-type rings
+ * (src/config/launch-types.ts), never from decoration.
+ */
 @theme {
-  --color-ink: #0a0a0b;
-  --color-surface: #141416;
-  --color-surface-2: #1e1e21;
-  --color-line: #2a2a2e;
-  --color-cream: #f5f1e8;
-  --color-muted: #a39e93;
-  --color-gold: #f4b400;
-  --color-red: #e23b2e;
-  --color-green: #1e9e5a;
+  --color-ink: #1b1b1f; /* page */
+  --color-coal: #111113; /* inset panels, buttons */
+  --color-surface: #232328; /* raised */
+  --color-surface-2: #2d2d33;
+  --color-line: #3a3a42;
+  --color-chalk: #e8e8ee; /* text */
+  --color-muted: #9d9daa;
+  --color-red: #f87171; /* errors only */
+  --color-green: #4ade80; /* success only */
 }
 
-/* inline: font variables are set on <body> by next/font, so resolve them where used. */
 @theme inline {
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display-face), "Arial Narrow", Impact, sans-serif;
+  --font-display: var(--font-display-face), ui-rounded, system-ui, sans-serif;
 }
 
 html {
@@ -25,12 +28,178 @@ html {
 
 body {
   background: var(--color-ink);
-  color: var(--color-cream);
+  color: var(--color-chalk);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-chalk);
+  outline-offset: 3px;
+}
+
+/* The bubble button: a little piece of the glossy black letters. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.35rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-chalk);
+  background:
+    radial-gradient(120% 80% at 30% 0%, rgb(255 255 255 / 0.22), transparent 55%),
+    linear-gradient(#26262b, #0a0a0b);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    inset 0 -2px 6px rgb(0 0 0 / 0.6),
+    0 6px 16px -6px rgb(0 0 0 / 0.7);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -2px 6px rgb(0 0 0 / 0.6),
+    0 10px 22px -8px rgb(0 0 0 / 0.8);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.65rem 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-chalk);
+  border: 1.5px solid var(--color-line);
+  transition: border-color 0.15s ease;
+}
+.btn-quiet:hover {
+  border-color: var(--color-muted);
+}
+
+/* ─── Hero: the word fills the first screen ───────────────────────────── */
+.gm-hero {
+  position: relative;
+  background:
+    radial-gradient(70% 55% at 50% 38%, #34343b 0%, transparent 70%),
+    linear-gradient(#26262b, var(--color-ink));
+}
+.gm-stage {
+  position: relative;
+  height: calc(100svh - 3.5rem);
+  max-height: calc(100vw / 3 * 4 * 1.35); /* don't over-stretch on tall phones */
+  min-height: 420px;
+  padding: 10px 10px 0;
+  isolation: isolate;
+  overflow: hidden;
+  container-type: size;
+}
+.gm-word {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  height: 100%;
+}
+.gm-break {
+  flex-basis: 100%;
+  height: 0;
+}
+.gm-break-wide {
+  display: none;
+}
+.gm-cell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: end center;
+}
+.gm-cell img {
+  user-select: none;
+  filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.45));
+}
+
+/* Phones and portrait: a 3 × 4 block of cells. Each letter fills its cell, stretching up to 25%
+   on either axis so the word fills the screen. */
+@media not (min-aspect-ratio: 4/5) {
+  .gm-cell {
+    flex: 0 0 33.333%;
+    height: 25%;
+    container-type: size;
+  }
+  .gm-cell img {
+    width: min(100cqw, 100cqh * var(--a) * 1.25);
+    height: min(100cqh, 100cqw / var(--a) * 1.25);
+    margin-bottom: 2cqh;
+  }
+}
+
+/* Wider screens: GHANA over MAXXING, set tight like a word. MAXXING (about 6.1 letter-heights
+   wide) spans the width; letters stretch up to 22% taller to fill the height. */
+@media (min-aspect-ratio: 4/5) {
+  .gm-stage {
+    --lh: min(calc((100cqw - 24px) / 6.15), calc((100cqh - 24px) / 2 / 1.22));
+    max-height: calc((100vw - 24px) / 6.15 * 2 * 1.22 + 40px);
+    padding: 8px 12px 16px;
+  }
+  .gm-break-phone {
+    display: none;
+  }
+  .gm-break-wide {
+    display: block;
+  }
+  .gm-cell img {
+    width: calc(var(--lh) * var(--a));
+    height: calc(var(--lh) * 1.22);
+  }
+}
+/* The letter a character comes out of sits above the character; all the others sit below. */
+.gm-cell-source {
+  z-index: 3;
+}
+.gm-walk-clip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.gm-walker {
+  position: absolute;
+  opacity: 0; /* hidden until frames arrive, so a slow or missing clip never shows a grey box */
+}
+.gm-walker[data-playing] {
+  opacity: 1;
+}
+.gm-still {
+  position: absolute;
+  z-index: 2;
+  right: 4%;
+  bottom: 0;
+  height: 32%;
+  width: auto;
+}
+.gm-wobble {
+  animation: gm-wobble 0.7s cubic-bezier(0.3, 0.6, 0.3, 1);
+  transform-origin: 50% 100%;
+}
+@keyframes gm-wobble {
+  0% { transform: rotate(0); }
+  18% { transform: rotate(-7deg) scale(1.03, 0.97); }
+  40% { transform: rotate(5deg); }
+  62% { transform: rotate(-3deg); }
+  82% { transform: rotate(1.5deg); }
+  100% { transform: rotate(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,4 +210,56 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─── Map pins (see components/map/launch-map.tsx) ─────────────────────── */
+.gm-pin {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-coal);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  /* Neon ring: a bright border plus an outer glow in the launch type's colour. */
+  border: 3.5px solid var(--ring);
+  box-shadow: 0 0 0 1.5px rgb(0 0 0 / 0.7), 0 0 14px 1px var(--ring), 0 0 2px var(--ring) inset;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.gm-pin:hover,
+.gm-pin:focus-visible {
+  transform: scale(1.25);
+  z-index: 5;
+}
+.gm-pin img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gm-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 3px;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0.6), 0 4px 18px rgb(0 0 0 / 0.5);
+}
+.gm-cluster span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-coal);
+  color: var(--color-chalk);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
 }

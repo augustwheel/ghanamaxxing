@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/admin", label: "Launches" },
   { href: "/admin/new", label: "Add one" },
   { href: "/admin/import", label: "Import" },
+  { href: "/admin/suggestions", label: "Suggestions" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,15 +26,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="mx-auto max-w-5xl px-4 pt-8">
       <div className="flex flex-wrap items-center gap-2 border-b border-line pb-4">
-        <span className="mr-2 font-display text-2xl tracking-wide">ADMIN</span>
+        <span className="mr-2 font-display text-2xl font-bold">Admin</span>
         {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="rounded-full px-3 py-1.5 text-sm text-muted hover:bg-surface-2 hover:text-cream">
+          <Link key={l.href} href={l.href} className="rounded-full px-3 py-1.5 text-sm text-muted hover:bg-surface-2 hover:text-chalk">
             {l.label}
           </Link>
         ))}
         <form action="/auth/signout" method="post" className="ml-auto flex items-center gap-3 text-sm text-muted">
           <span className="hidden sm:inline">{user.email}</span>
-          <button className="rounded-full border border-line px-3 py-1.5 hover:text-cream">Sign out</button>
+          <button className="rounded-full border border-line px-3 py-1.5 hover:text-chalk">Sign out</button>
         </form>
       </div>
       <div className="py-6">{children}</div>
