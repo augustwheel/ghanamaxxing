@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Fredoka } from "next/font/google";
+import Script from "next/script";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SITE } from "@/config/site";
@@ -35,6 +36,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
         </main>
         <SiteFooter />
+        {/* Google tag (gtag.js), loaded after the page so it never slows the first screen. */}
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${SITE.googleAnalyticsId}`} strategy="afterInteractive" />
+        <Script id="google-tag" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${SITE.googleAnalyticsId}');`}
+        </Script>
       </body>
     </html>
   );

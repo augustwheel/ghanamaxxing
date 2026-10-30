@@ -142,9 +142,17 @@ export function Hero({ children }: { children?: React.ReactNode }) {
       if (!place) return queueNext(500);
       playing = true;
       setWalk({ key: ++key, character, ...place });
-      // If the clip still hasn't started (very slow connection), skip it rather than stall the show.
+      // Safari sometimes blocks playback without saying so. If the clip has loaded but still isn't
+      // playing after a few seconds, treat it as blocked; if it's still loading, give it longer.
       clearTimeout(watchdog);
-      watchdog = setTimeout(() => failRef.current(false), 9000);
+      const check = (waited: number) => {
+        const el = videoRef.current;
+        if (!el || !el.paused) return;
+        if (el.readyState >= 2) return failRef.current(true);
+        if (waited >= 9000) return failRef.current(false);
+        watchdog = setTimeout(() => check(waited + 1500), 1500);
+      };
+      watchdog = setTimeout(() => check(3500), 3500);
     };
 
     finishRef.current = () => {
@@ -189,18 +197,50 @@ export function Hero({ children }: { children?: React.ReactNode }) {
     };
   }, [reducedMotion, blocked, placeFor]);
 
-  // Any tap, click, key or scroll counts as a user gesture, which lets Safari play video again.
+  // Play the walk's clip on the one reusable video element.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (!walk) {
+      el.pause();
+      el.removeAttribute("data-playing");
+      return;
+    }
+    el.removeAttribute("data-playing");
+    el.src = clipUrl(walk.character.id);
+    el.play()?.catch((err: DOMException) => {
+      if (err?.name !== "AbortError") failRef.current(err?.name === "NotAllowedError");
+    });
+  }, [walk]);
+
+  // While blocked, wait for a tap, click or key press: Safari only allows video to start while it's
+  // handling one, so the element is unlocked right inside the handler. Once an element has played
+  // from a gesture, Safari lets it keep playing, which is why every character shares one element.
   useEffect(() => {
     if (!blocked) return;
-    const unblock = () => setBlocked(false);
-    const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
-    events.forEach((e) => window.addEventListener(e, unblock, { once: true, passive: true }));
-    return () => events.forEach((e) => window.removeEventListener(e, unblock));
+    const el = videoRef.current;
+    if (el && !el.getAttribute("src")) el.src = clipUrl(HERO_CHARACTERS[0].id);
+    const unlock = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = true;
+      const p = v.play();
+      if (!p) return setBlocked(false);
+      p.then(() => {
+        v.pause();
+        v.currentTime = 0;
+        setBlocked(false);
+      }).catch(() => {}); // still refused: keep waiting for the next gesture
+    };
+    const events = ["pointerdown", "touchend", "keydown", "click"] as const;
+    events.forEach((e) => window.addEventListener(e, unlock, { passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, unlock));
   }, [blocked]);
 
   const finishRef = useRef<() => void>(() => {});
   const startedRef = useRef<() => void>(() => {});
   const failRef = useRef<(refused: boolean) => void>(() => {});
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   return (
     <section aria-label="Ghanamaxxing" className="gm-hero">
@@ -227,56 +267,51 @@ export function Hero({ children }: { children?: React.ReactNode }) {
           ))}
         </div>
 
-        {walk && (
-          <div
-            className="gm-walk-clip"
-            style={{ left: walk.clip.left, width: walk.clip.width }}
-          >
-            <video
-              key={walk.key}
-              // Start playback ourselves instead of trusting autoplay: Safari only allows it when the
-              // video is muted *before* it loads, and reports a refusal through play()'s promise.
-              ref={(el) => {
-                if (!el || el.dataset.started) return;
-                el.dataset.started = "1";
+        {/* One video element, reused for every character (see the unlock effect above). */}
+        <div
+          className="gm-walk-clip"
+          style={walk ? { left: walk.clip.left, width: walk.clip.width } : { left: 0, width: 0 }}
+        >
+          <video
+            ref={(el) => {
+              videoRef.current = el;
+              if (el && !el.dataset.ready) {
+                // Safari only allows autoplay for video that is muted before it loads.
+                el.dataset.ready = "1";
                 el.muted = true;
                 el.defaultMuted = true;
                 el.setAttribute("muted", "");
-                el.play()?.catch((err: DOMException) => {
-                  if (err?.name !== "AbortError") failRef.current(err?.name === "NotAllowedError");
-                });
-              }}
-              className="gm-walker"
-              style={{
-                left: walk.box.left - walk.clip.left,
-                bottom: walk.box.bottom,
-                width: walk.box.size,
-                height: walk.box.size,
-                transform: walk.mirror ? "scaleX(-1)" : undefined,
-              }}
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-              onTimeUpdate={(e) => {
-                const at = walk.character.bumpAt;
-                if (
-                  at &&
-                  bumped === null &&
-                  Math.abs(e.currentTarget.currentTime - at) < 0.15
-                )
-                  setBumped(walk.letter);
-              }}
-              onPlaying={(e) => {
-                e.currentTarget.setAttribute("data-playing", "");
-                startedRef.current();
-              }}
-              onEnded={() => finishRef.current()}
-              onError={() => failRef.current(false)}
-              src={clipUrl(walk.character.id)}
-            />
-          </div>
-        )}
+                el.setAttribute("playsinline", "");
+              }
+            }}
+            className="gm-walker"
+            style={
+              walk
+                ? {
+                    left: walk.box.left - walk.clip.left,
+                    bottom: walk.box.bottom,
+                    width: walk.box.size,
+                    height: walk.box.size,
+                    transform: walk.mirror ? "scaleX(-1)" : undefined,
+                  }
+                : { width: 1, height: 1 }
+            }
+            muted
+            playsInline
+            preload="auto"
+            onTimeUpdate={(e) => {
+              const at = walk?.character.bumpAt;
+              if (walk && at && bumped === null && Math.abs(e.currentTarget.currentTime - at) < 0.15) setBumped(walk.letter);
+            }}
+            onPlaying={(e) => {
+              if (!walk) return;
+              e.currentTarget.setAttribute("data-playing", "");
+              startedRef.current();
+            }}
+            onEnded={() => walk && finishRef.current()}
+            onError={() => walk && failRef.current(false)}
+          />
+        </div>
 
         {(reducedMotion || blocked) && <ReducedMotionStill />}
       </div>
