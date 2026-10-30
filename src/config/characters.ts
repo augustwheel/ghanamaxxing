@@ -33,7 +33,7 @@ export const HERO_TIMING = {
   gapMs: [1200, 2200] as const,
   firstDelayMs: 700,
   /** Character height as a fraction of the letter's height. */
-  characterHeight: 0.5,
+  characterHeight: 0.6,
   /** Letters with straight vertical sides, so a character steps cleanly out from behind the edge. */
   walkOutLetters: ["H", "N", "M"],
 } as const;

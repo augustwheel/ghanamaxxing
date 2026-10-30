@@ -1,7 +1,8 @@
-import { createHash, randomBytes } from "node:crypto";
-import { cookies, headers } from "next/headers";
+import { randomBytes } from "node:crypto";
+import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { visitorIpHash } from "@/lib/visitor";
 
 // One-tap "Ayekoo" (well done). No sign-in: a browser is identified by a random id in a private
 // cookie, and a salted hash of the IP is kept to stop someone clearing cookies to pile on.
@@ -18,13 +19,6 @@ async function voterKey(create: boolean) {
   const key = randomBytes(18).toString("base64url");
   jar.set(COOKIE, key, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 365 * 2, path: "/" });
   return key;
-}
-
-async function ipHash() {
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-  const salt = process.env.AYEKOO_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  return createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }
 
 async function state(db: NonNullable<ReturnType<typeof createServiceClient>>, launchId: string, key: string | null) {
@@ -59,7 +53,7 @@ export async function POST(request: NextRequest) {
   if (current.given) {
     await db.from("ayekoos").delete().eq("launch_id", launchId).eq("voter_key", key);
   } else {
-    const hash = await ipHash();
+    const hash = await visitorIpHash();
     const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
     const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
     const [{ count: perHour }, { count: perLaunch }] = await Promise.all([

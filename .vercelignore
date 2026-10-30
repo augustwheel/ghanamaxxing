@@ -1,0 +1,7 @@
+# Never upload local secrets or build output when deploying from this folder.
+.env*
+!.env.example
+.next
+.next-build
+node_modules
+.claude
