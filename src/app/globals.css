@@ -320,7 +320,8 @@ body {
   transform: translateY(101%);
   transition: transform 0.35s ease;
 }
-.gm-ayekoo-fill::before {
+/* Wavy top edge of the liquid: only exists while it's filling, never lingering at rest. */
+.gm-ayekoo[data-phase="filling"] .gm-ayekoo-fill::before {
   content: "";
   position: absolute;
   left: -50%;
@@ -342,9 +343,6 @@ body {
 }
 .gm-ayekoo[data-given] .gm-ayekoo-fill {
   transform: translateY(0);
-}
-.gm-ayekoo[data-given] .gm-ayekoo-fill::before {
-  display: none;
 }
 .gm-ayekoo[data-given] {
   color: #2b1d00;

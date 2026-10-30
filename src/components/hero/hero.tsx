@@ -8,9 +8,9 @@ import {
 } from "@/config/characters";
 
 const WORD = "GHANAMAXXING";
-// MAXXING gets its own colour so the word reads as "Ghana maxxing". Options: "pearl", "violet",
-// "neon" (files are /hero/letters/<letter>-<tint>.webp), or null for all black.
-const MAXXING_TINT: "pearl" | "violet" | "neon" | null = "violet";
+// MAXXING gets its own colour so the word reads as "Ghana maxxing". Options: "ghana-green",
+// "emerald", "silver", "violet" (files are /hero/letters/<letter>-<tint>.webp), or null for all black.
+const MAXXING_TINT: "ghana-green" | "emerald" | "silver" | "violet" | null = "ghana-green";
 const letterSrc = (ch: string, i: number) =>
   i >= 5 && MAXXING_TINT ? `/hero/letters/${ch}-${MAXXING_TINT}.webp` : `/hero/letters/${ch}.webp`;
 // Width ÷ height of each letter image (public/hero/letters).
