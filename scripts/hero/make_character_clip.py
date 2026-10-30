@@ -40,25 +40,27 @@ def smooth(x, a, b):
     return t * t * (3 - 2 * t)
 
 
+# Both helpers pad first: a plain np.roll wraps a character at the right edge round to the left edge.
 def shift_reduce(m, r, fn):
-    out = m.copy()
+    out = np.pad(m, r, mode="edge")
     for axis in (0, 1):
         acc = out.copy()
         for k in range(1, r + 1):
             acc = fn(acc, np.roll(out, k, axis))
             acc = fn(acc, np.roll(out, -k, axis))
         out = acc
-    return out
+    return out[r:-r, r:-r]
 
 
 def blur(m, r=1):
-    acc = np.zeros_like(m)
+    padded = np.pad(m, r, mode="edge")
+    acc = np.zeros_like(padded)
     n = 0
     for dy in range(-r, r + 1):
         for dx in range(-r, r + 1):
-            acc += np.roll(np.roll(m, dy, 0), dx, 1)
+            acc += np.roll(np.roll(padded, dy, 0), dx, 1)
             n += 1
-    return acc / n
+    return (acc / n)[r:-r, r:-r]
 
 
 O = frames(orig)

@@ -32,9 +32,10 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 ## Architecture map
 
 - `src/components/hero/hero.tsx`: letter grid (3 per row on phones, GHANA/MAXXING wide) and the walk-out
-  sequencer: two reusable `<video>` players, overlapping chain (`handoffAt`), rest after a cycle, clipping so a
-  character is only visible past the letter's outer edge, Safari Low Power Mode unlock. Timing/size in
-  `src/config/characters.ts`.
+  sequencer: two reusable `<video>` players, overlapping chain, rest after a cycle, a cut inside the letter so
+  nothing shows through its gaps, Safari Low Power Mode unlock. A frame-by-frame loop fires the bump and handoff and
+  pushes characters home. Per-character tuning (`feet`, `edge`, `handoffAt`, `bumpAt`, `exit`) is in
+  `src/config/characters.ts`; values are measured from the clips.
 - `src/components/map/launch-map.tsx`: MapLibre (lazy-loaded) + OpenFreeMap dark style + Supercluster. The worker
   is served from `public/maplibre/` (copied by `postinstall`) because bundling breaks MapLibre's worker URL.
 - `src/app/api/ayekoo/route.ts`: GET state / POST toggle, service role, cookie `gm_vk`, IP-hash limits.
@@ -57,13 +58,19 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 
 ## Known gaps / things worth auditing
 
-- **Sign in is in the header but Google sign-in isn't configured in Supabase**, so it doesn't work yet. Either set
-  it up (README step) or hide the button until it is. `/admin` depends on it.
+- **Google sign-in isn't configured in Supabase**, so the header's Sign in button is removed until it is. `/signin`
+  and `/admin` still exist and depend on it. Put the button back in `site-header.tsx` once it works.
+- **Every clip has a fade baked in from 4.67s** (`HERO_TIMING.fadeStartsAt`). A character must be behind their letter
+  by then or they ghost out in plain view. Check this for any new clip, and use `edge`/`exit` to get there.
+- The five shipped clips also have a sliver wrapped round to the far edges (fixed in the script for new clips, hidden
+  by `clip-path` on `.gm-walker` for these). Re-rendering them from the originals would remove both this and the fade.
 - Admin pages (`src/app/admin/*`) were built early and only lightly restyled.
 - `src/components/home/rankings-preview.tsx` and `src/config/rankings.ts` keep old names; they now hold the
   Newest/Shuffle preview and Spotlight settings.
 - Spotlight of the week is computed, not yet saved to `spotlights` (no-repeat rule not enforced).
-- No per-launch share images (Open Graph) yet; previews use the logo or screenshot.
+- No per-launch share images (Open Graph) yet; previews use the screenshot, logo or the site card
+  (`src/app/opengraph-image.png`, made from the hero letters).
+- The About page says "no rankings or leaderboards", which describes what the site isn't. Left for the owner's voice.
 - `hero.tsx` was reformatted mid-session; formatting is inconsistent with the rest (no Prettier config in repo).
 - Safari HEVC playback was only tested via a Chrome simulation of Safari's autoplay rules, not in real Safari.
 - 3 seed launches have no logo (Kowri, Redbird Health, Asoriba) and show initials.

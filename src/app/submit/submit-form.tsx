@@ -20,10 +20,10 @@ export function SubmitForm() {
     return (
       <div className="mt-8 rounded-[2rem] bg-coal p-7">
         <p className="font-display text-2xl font-semibold">Got it, thank you</p>
-        <p className="mt-2 text-muted">We check every launch before it goes on the board, usually within a couple of days.</p>
+        <p className="mt-2 text-muted">We take a quick look before it goes live, usually within a couple of days.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/launches" className="btn">
-            Explore launches
+            Explore
           </Link>
           <button type="button" onClick={() => window.location.reload()} className="btn-quiet">
             Add another

@@ -4,8 +4,11 @@ const nextConfig: NextConfig = {
   // Lets a production build run alongside `npm run dev` without clobbering its .next folder.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   images: {
-    // Logos and screenshots come from Supabase Storage or makers' own sites.
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    // Only our own files and Supabase Storage go through the optimiser, so it can't be used as an
+    // open image proxy. Images on makers' own sites load directly (see isOptimizable).
+    remotePatterns: process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? [{ protocol: "https", hostname: new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname }]
+      : [],
     formats: ["image/avif", "image/webp"],
   },
   experimental: {

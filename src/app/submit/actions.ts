@@ -25,7 +25,7 @@ const schema = z.object({
 export async function submitLaunch(_prev: SubmitState, formData: FormData): Promise<SubmitState> {
   const values = Object.fromEntries([...formData.entries()].filter(([, v]) => typeof v === "string")) as Record<string, string>;
   const db = createServiceClient();
-  if (!db) return { values, error: "Adding launches opens once the site's database is connected." };
+  if (!db) return { values, error: "Adding apps and startups opens once the site's database is connected." };
 
   const parsed = schema.safeParse(values);
   if (!parsed.success) {
@@ -39,7 +39,7 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
   const ipHash = await visitorIpHash();
   const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
   const { count } = await db.from("launch_submissions").select("launch_id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", hourAgo);
-  if ((count ?? 0) >= PER_IP_PER_HOUR) return { values, error: "That's a lot of launches from here. Try again in an hour." };
+  if ((count ?? 0) >= PER_IP_PER_HOUR) return { values, error: "That's a lot of additions from here. Try again in an hour." };
 
   const { data: existing, error: listError } = await db.from("launches").select("slug, url, name, status");
   if (listError) return { values, error: "Couldn't save that. Try again." };

@@ -71,22 +71,43 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(mq.matches);
+    // Visitors on Data Saver get the still too: the clips are the heaviest thing on the page.
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const update = () => setReducedMotion(mq.matches || !!saveData);
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  // Works out where a character should stand, from the live layout. `busy` letters are already in
-  // use by the other player, so two characters never come out of the same letter at once.
-  const placeFor = useCallback((character: HeroCharacter, busy: number[]): Omit<Walk, "key" | "character"> | null => {
+  // Where a character stands at a given letter, from the live layout. Uses offsets rather than
+  // getBoundingClientRect so a letter that is mid-wobble still measures true.
+  const measure = useCallback((character: HeroCharacter, letter: number): Omit<Walk, "key" | "character"> | null => {
     const stage = stageRef.current;
-    if (!stage) return null;
-    const s = stage.getBoundingClientRect();
-    const cells = letterRefs.current.map((el, i) => ({ el, i, r: el!.getBoundingClientRect() }));
-    const rowTops = [...new Set(cells.map((c) => Math.round(c.r.top)))].sort((a, b) => a - b);
+    const cell = letterRefs.current[letter];
+    const img = cell?.querySelector("img");
+    if (!stage || !cell || !img) return null;
+    const imgLeft = cell.offsetLeft + img.offsetLeft;
+    const imgBottom = cell.offsetTop + img.offsetTop + img.offsetHeight;
+    // The character fills ~85% of its square clip.
+    const size = ((img.offsetHeight * HERO_TIMING.characterHeight) / 0.85) * (character.scale ?? 1);
+    const mirror = imgLeft + img.offsetWidth / 2 < stage.clientWidth / 2; // always walk toward the middle of the screen
+    const outer = mirror ? imgLeft + img.offsetWidth : imgLeft;
+    const left = mirror ? outer - size * (1 - character.edge) : outer - size * character.edge;
+    // Everything on the letter's side of the cut is cut away, so nothing shows through the letter's gaps.
+    const inset = img.offsetWidth * HERO_TIMING.cutInset;
+    const cut = mirror ? outer - inset : outer + inset;
+    const clip = mirror ? { left: cut, width: stage.clientWidth - cut } : { left: 0, width: cut };
+    const bottom = stage.clientHeight - imgBottom - size * (1 - character.feet);
+    return { letter, mirror, clip, box: { left, bottom, size } };
+  }, []);
+
+  // Picks a letter for the character's row. `busy` letters are already in use by the other player, so
+  // two characters never come out of the same letter at once.
+  const placeFor = useCallback((character: HeroCharacter, busy: number[]) => {
+    const cells = letterRefs.current.map((el, i) => ({ i, top: el!.offsetTop }));
+    const rowTops = [...new Set(cells.map((c) => c.top))].sort((a, b) => a - b);
     const eligible = cells.filter((c) => (HERO_TIMING.walkOutLetters as readonly string[]).includes(WORD[c.i]));
-    const inRow = (row: number) => eligible.filter((c) => Math.round(c.r.top) === rowTops[row]);
+    const inRow = (row: number) => eligible.filter((c) => c.top === rowTops[row]);
     // Top and bottom mean the first/last row that has a straight-edged letter; middle is any row between.
     const rows = rowTops.map((_, k) => k).filter((k) => inRow(k).length);
     if (!rows.length) return null;
@@ -95,19 +116,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
     const free = (list: typeof eligible) => list.filter((c) => !busy.includes(c.i));
     const candidates = free(inRow(row)).length ? free(inRow(row)) : free(eligible);
     if (!candidates.length) return null;
-    const c = pick(candidates);
-    const img = c.el!.querySelector("img")!.getBoundingClientRect();
-    // The character fills ~85% of its square clip.
-    const size = ((img.height * HERO_TIMING.characterHeight) / 0.85) * (character.scale ?? 1);
-    const centerX = img.left + img.width / 2 - s.left;
-    const mirror = centerX < s.width / 2; // always walk toward the middle of the screen
-    // The clip's entry edge sits just inside the letter's outer edge, and everything on the letter's
-    // side of that edge is cut away, so the character is unseen until they step past the letter.
-    const edge = mirror ? img.right - s.left - img.width * 0.04 : img.left - s.left + img.width * 0.04;
-    const left = mirror ? edge - size * 0.1 : edge - size * 0.9;
-    const clip = mirror ? { left: edge, width: s.width - edge } : { left: 0, width: edge };
-    return { letter: c.i, mirror, clip, box: { left, bottom: s.bottom - img.bottom - size * 0.05, size } };
-  }, []);
+    return measure(character, pick(candidates).i);
+  }, [measure]);
 
   // The sequencer: the five characters appear in config order as a chain. Each new one starts
   // walking out as the previous one turns back into its letter. After all five, a short rest,
@@ -157,11 +167,11 @@ export function Hero({ children }: { children?: React.ReactNode }) {
         handedOff[slot] = true;
         launch();
       }
-      if (next >= N && idle()) {
-        next = 0;
-        const [a, b] = HERO_TIMING.cycleRestMs;
-        timer = setTimeout(launch, a + Math.random() * (b - a));
-      }
+      if (!idle()) return;
+      if (next < N) return launch(); // the handoff fell while off-screen: pick the chain back up
+      next = 0;
+      const [a, b] = HERO_TIMING.cycleRestMs;
+      timer = setTimeout(launch, a + Math.random() * (b - a));
     };
 
     handoffRef.current = (slot) => {
@@ -220,12 +230,56 @@ export function Hero({ children }: { children?: React.ReactNode }) {
       if (el.dataset.key === String(walk.key)) return;
       el.dataset.key = String(walk.key);
       el.removeAttribute("data-playing");
+      el.style.setProperty("--gm-shift", "0px");
       el.src = clipUrl(walk.character.id);
       el.play()?.catch((err: DOMException) => {
         if (err?.name !== "AbortError") failRef.current(slot, err?.name === "NotAllowedError");
       });
     });
   }, [walkKeys]);
+
+  // Follows each clip frame by frame: pushes the character home on the way back, and fires the bump
+  // and the handoff on time (the video's timeupdate event is only good to about a quarter second).
+  const walking = walkKeys !== Array(PLAYERS).fill(0).join(",");
+  useEffect(() => {
+    if (!walking) return;
+    let raf = 0;
+    const tick = () => {
+      walksRef.current.forEach((walk, slot) => {
+        const el = videoRefs.current[slot];
+        if (!walk || !el || el.dataset.key !== String(walk.key)) return;
+        const t = el.currentTime;
+        const { exit, bumpAt, handoffAt } = walk.character;
+        if (exit) {
+          const p = Math.min(Math.max((t - exit.from) / (HERO_TIMING.fadeStartsAt - exit.from), 0), 1);
+          const shift = p * p * (3 - 2 * p) * exit.amount * walk.box.size * (walk.mirror ? -1 : 1);
+          el.style.setProperty("--gm-shift", `${shift}px`);
+        }
+        if (bumpAt && t >= bumpAt && bumpedKey.current !== walk.key) {
+          bumpedKey.current = walk.key;
+          setBumped(walk.letter);
+        }
+        if (t >= handoffAt) handoffRef.current(slot);
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [walking]);
+
+  // Keep anyone mid-walk on their letter if the layout changes (a phone turning sideways).
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const ro = new ResizeObserver(() => {
+      walksRef.current.forEach((walk, slot) => {
+        const place = walk && measure(walk.character, walk.letter);
+        if (walk && place) setSlot(slot, { ...walk, ...place });
+      });
+    });
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, [measure, setSlot]);
 
   // While blocked, wait for a tap, click or key press: Safari only lets video start while it's
   // handling one, so both players are unlocked right inside the handler. Once a player has played
@@ -253,6 +307,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
     return () => events.forEach((e) => window.removeEventListener(e, unlock));
   }, [blocked]);
 
+  const bumpedKey = useRef(0);
   const handoffRef = useRef<(slot: number) => void>(() => {});
   const endRef = useRef<(slot: number) => void>(() => {});
   const startedRef = useRef<(slot: number) => void>(() => {});
@@ -310,20 +365,13 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                       bottom: walk.box.bottom,
                       width: walk.box.size,
                       height: walk.box.size,
-                      transform: walk.mirror ? "scaleX(-1)" : undefined,
-                    }
+                      "--gm-flip": walk.mirror ? -1 : 1,
+                    } as React.CSSProperties
                   : { width: 1, height: 1 }
               }
               muted
               playsInline
               preload="auto"
-              onTimeUpdate={(e) => {
-                if (!walk) return;
-                const t = e.currentTarget.currentTime;
-                const at = walk.character.bumpAt;
-                if (at && bumped === null && Math.abs(t - at) < 0.15) setBumped(walk.letter);
-                if (t >= HERO_TIMING.handoffAt) handoffRef.current(slot);
-              }}
               onPlaying={(e) => {
                 if (!walk) return;
                 e.currentTarget.setAttribute("data-playing", "");

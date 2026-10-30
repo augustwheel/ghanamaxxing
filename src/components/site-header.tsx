@@ -16,9 +16,6 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link href="/signin" className="btn ml-1 !px-3 !py-1.5 text-[14px] sm:!px-4 sm:text-[15px]">
-            Sign in
-          </Link>
         </nav>
       </div>
     </header>

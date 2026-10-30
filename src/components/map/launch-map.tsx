@@ -66,7 +66,7 @@ function clusterElement(count: number, mix: Record<string, number>, onClick: () 
   el.className = "gm-cluster";
   el.style.width = el.style.height = `${size}px`;
   el.style.background = `conic-gradient(${stops.join(",")})`;
-  el.setAttribute("aria-label", `${count} launches here, zoom in`);
+  el.setAttribute("aria-label", `${count} apps and startups here, zoom in`);
   el.innerHTML = `<span>${count}</span>`;
   el.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -250,7 +250,7 @@ export function LaunchMap({ launches, className, interactiveScroll = false }: Pr
         )}
 
         <p className="rounded-full bg-coal/90 px-4 py-1.5 font-display text-sm text-chalk ring-1 ring-line backdrop-blur" aria-live="polite">
-          {visibleCount} {visibleCount === 1 ? "launch" : "launches"} on the map
+          {visibleCount} on the map
         </p>
 
         <div className="pointer-events-auto flex max-w-full gap-2 overflow-x-auto rounded-full bg-coal/90 p-1.5 ring-1 ring-line backdrop-blur [scrollbar-width:none]">

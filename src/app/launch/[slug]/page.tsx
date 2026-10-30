@@ -6,6 +6,7 @@ import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
 import { AyekooButton } from "@/components/ayekoo-button";
 import { getLaunchType } from "@/config/launch-types";
+import { isOptimizable } from "@/lib/format";
 import { getApprovedLaunches, getLaunchBySlug } from "@/lib/launches";
 import type { MakerSocials } from "@/lib/types";
 
@@ -15,9 +16,9 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const launch = await getLaunchBySlug((await params).slug);
-  if (!launch) return { title: "Launch not found" };
+  if (!launch) return { title: "Not found" };
   const title = `${launch.name}: ${launch.tagline}`;
-  const images = launch.image_url ? [launch.image_url] : launch.logo_url ? [launch.logo_url] : undefined;
+  const images = launch.image_url ? [launch.image_url] : launch.logo_url ? [launch.logo_url] : ["/opengraph-image.png"];
   return {
     title,
     description: launch.description ?? launch.tagline,
@@ -55,7 +56,7 @@ export default async function LaunchPage({ params }: Props) {
       />
       <div className="relative mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
         <Link href={`/launches?type=${type.value}`} className="font-display font-semibold text-muted hover:text-chalk">
-          More {type.label} launches
+          More in {type.label}
         </Link>
 
         <header className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
@@ -83,6 +84,7 @@ export default async function LaunchPage({ params }: Props) {
               src={launch.image_url}
               alt={`Screenshot of ${launch.name}`}
               fill
+              unoptimized={!isOptimizable(launch.image_url)}
               sizes="(max-width: 768px) 100vw, 768px"
               className="object-cover"
             />

@@ -66,7 +66,7 @@ export default async function LaunchesPage({ searchParams }: Props) {
       ) : (
         <div className="mt-6 rounded-[2rem] bg-surface px-6 py-12 text-center">
           <p className="font-display text-2xl font-semibold">Nothing here yet</p>
-          <p className="mt-2 text-muted">Know a {type ? getLaunchType(type).label : ""} launch from Ghana we&apos;re missing?</p>
+          <p className="mt-2 text-muted">Know one from Ghana we&apos;re missing?</p>
           <Link href="/submit" className="btn mt-6">Add it</Link>
         </div>
       )}

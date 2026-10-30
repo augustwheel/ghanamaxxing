@@ -2,7 +2,7 @@ export const SITE = {
   name: "Ghanamaxxing",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   description:
-    "A place to discover and back the apps and startups coming out of Ghana. Star the ones you love and find the builders on the map.",
+    "A place to discover and back the apps and startups coming out of Ghana. Say ayekoo to the ones you love and find the builders on the map.",
   contactEmail: "theteam@augustwheel.com",
   /** Google Analytics 4 measurement ID. */
   googleAnalyticsId: "G-745YHYCMWY",

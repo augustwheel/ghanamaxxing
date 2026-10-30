@@ -177,6 +177,9 @@ body {
 .gm-walker {
   position: absolute;
   opacity: 0; /* hidden until frames arrive, so a slow or missing clip never shows a grey box */
+  transform: translateX(var(--gm-shift, 0px)) scaleX(var(--gm-flip, 1));
+  /* The clips have a sliver of the character wrapped round to the far edges; never show it. */
+  clip-path: inset(1.5% 0 0 1.5%);
 }
 .gm-walker[data-playing] {
   opacity: 1;

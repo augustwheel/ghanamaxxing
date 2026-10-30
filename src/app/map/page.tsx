@@ -15,7 +15,7 @@ export default async function MapPage() {
   const launches = await getApprovedLaunches();
   return (
     <>
-      <h1 className="sr-only">Map of launches</h1>
+      <h1 className="sr-only">Map of apps and startups</h1>
       <LaunchMap launches={launches} interactiveScroll className="h-[calc(100svh-3.5rem)] min-h-[420px]" />
     </>
   );

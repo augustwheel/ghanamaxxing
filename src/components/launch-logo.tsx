@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getLaunchType } from "@/config/launch-types";
+import { isOptimizable } from "@/lib/format";
 
 function initials(name: string) {
   const words = name.trim().split(/\s+/);
@@ -33,7 +34,7 @@ export function LaunchLogo({
           width={size}
           height={size}
           priority={priority}
-          unoptimized={logoUrl.toLowerCase().endsWith(".svg")}
+          unoptimized={!isOptimizable(logoUrl)}
           className="h-full w-full object-cover"
         />
       ) : (

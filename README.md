@@ -109,7 +109,9 @@ area (see `src/config/places.ts`) are spread a little around it so pins don't st
 Each character is three files in `public/hero/characters/`: `<id>.webm` (VP9 with alpha, for Chrome/Firefox),
 `<id>.mov` (HEVC with alpha, for Safari) and `<id>.webp` (still, for reduced motion and blocked playback).
 Clips are square, start and end on an empty frame, and the character enters and leaves through the right edge;
-the page mirrors them when needed.
+the page mirrors them when needed. Each character in `src/config/characters.ts` is tuned to its clip: `feet` (where
+they stand), `edge` (how close to the letter), `handoffAt` (when the next one starts), `bumpAt` and `exit` (a push home
+so they're behind the letter before the clip's fade at 4.67s).
 
 To make a new one: generate the clip in Higgsfield on a plain grey background, run it through Higgsfield's
 background remover, then:

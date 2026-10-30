@@ -17,7 +17,7 @@ export function RemoveForm({ launch }: { launch: string }) {
         <p className="font-display text-2xl font-semibold">Got it</p>
         <p className="mt-2 text-muted">We&apos;ll take a look and reply by email, usually within a couple of days.</p>
         <Link href="/launches" className="btn mt-6">
-          Back to launches
+          Back to Explore
         </Link>
       </div>
     );

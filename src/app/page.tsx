@@ -46,7 +46,7 @@ export default async function HomePage() {
           </span>
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/launches" className="btn">Explore launches</Link>
+          <Link href="/launches" className="btn">Explore</Link>
           <Link href="/submit" className="btn-quiet">Add yours</Link>
         </div>
       </section>
@@ -56,7 +56,7 @@ export default async function HomePage() {
         <RankingsPreview tabs={BOARD_TABS.map((t) => ({ ...t, launches: boards[t.id] }))} all={launches} />
       </section>
 
-      <section id="map" aria-label="Map of launches" className="mt-24 scroll-mt-14">
+      <section id="map" aria-label="Map of apps and startups" className="mt-24 scroll-mt-14">
         <LaunchMap launches={launches} className="h-[80svh] min-h-[480px]" />
       </section>
     </>
