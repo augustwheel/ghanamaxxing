@@ -32,7 +32,7 @@ export default async function LaunchesPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
-      <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">Launches</h1>
+      <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">Explore</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
         Apps and startups from across Ghana. Browse what&apos;s new, shuffle for something unexpected, and say ayekoo to the ones you love.
       </p>

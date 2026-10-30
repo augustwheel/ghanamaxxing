@@ -14,6 +14,8 @@ export default async function HomePage() {
   const launches = await getApprovedLaunches();
   const spotlight = spotlightOfTheWeek(launches);
   const boards = boardPreviews(launches);
+  const weekAgo = Date.now() - 7 * 86_400_000;
+  const addedThisWeek = launches.filter((l) => new Date(l.launched_at ?? l.created_at).getTime() > weekAgo).length;
 
   return (
     <>
@@ -32,7 +34,18 @@ export default async function HomePage() {
           beyond. Say ayekoo to the ones you love, find the builders on the <a href="#map" className={link}>map</a>, and if
           you know one we&apos;ve missed or you&apos;re building your own, <Link href="/submit" className={link}>add it</Link>.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        {/* Live count: grows with every approved launch. "Added this week" only shows when it's true. */}
+        <p className="mt-8 flex items-center gap-2.5 font-display text-lg">
+          <span aria-hidden className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green" />
+          </span>
+          <span>
+            <strong className="font-semibold tabular-nums">{launches.length}</strong> apps and startups from Ghana so far, and counting
+            {addedThisWeek > 0 && <span className="text-muted">. {addedThisWeek} added this week</span>}
+          </span>
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/launches" className="btn">Explore launches</Link>
           <Link href="/submit" className="btn-quiet">Add yours</Link>
         </div>

@@ -54,6 +54,9 @@ export function Hero({ children }: { children?: React.ReactNode }) {
   const [walk, setWalk] = useState<Walk | null>(null);
   const [bumped, setBumped] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Safari (Low Power Mode, some site settings) can refuse to autoplay even muted video. Then we
+  // show the characters as stills and start the animation on the visitor's first tap or scroll.
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -114,8 +117,10 @@ export function Hero({ children }: { children?: React.ReactNode }) {
   // The sequencer: characters take turns in config order (top, top, middle, bottom, bottom),
   // one at a time. Pauses while the hero is off-screen or the tab is hidden.
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || blocked) return;
     let turn = 0;
+    let failures = 0;
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
     let key = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let visible = true;
@@ -137,13 +142,32 @@ export function Hero({ children }: { children?: React.ReactNode }) {
       if (!place) return queueNext(500);
       playing = true;
       setWalk({ key: ++key, character, ...place });
+      // If the clip still hasn't started (very slow connection), skip it rather than stall the show.
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => failRef.current(false), 9000);
     };
 
     finishRef.current = () => {
+      clearTimeout(watchdog);
       playing = false;
       setWalk(null);
       const [a, b] = HERO_TIMING.gapMs;
       queueNext(a + Math.random() * (b - a));
+    };
+
+    startedRef.current = () => {
+      clearTimeout(watchdog);
+      failures = 0;
+    };
+
+    // A clip that couldn't play. `refused` means the browser said no (autoplay blocked); twice in a
+    // row switches to stills until the visitor interacts. Slow or broken clips are just skipped.
+    failRef.current = (refused) => {
+      clearTimeout(watchdog);
+      playing = false;
+      setWalk(null);
+      if (refused && ++failures >= 2) setBlocked(true);
+      else queueNext(HERO_TIMING.firstDelayMs);
     };
 
     const io = new IntersectionObserver(([e]) => {
@@ -159,12 +183,24 @@ export function Hero({ children }: { children?: React.ReactNode }) {
     document.addEventListener("visibilitychange", onVis);
     return () => {
       clearTimeout(timer);
+      clearTimeout(watchdog);
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [reducedMotion, placeFor]);
+  }, [reducedMotion, blocked, placeFor]);
+
+  // Any tap, click, key or scroll counts as a user gesture, which lets Safari play video again.
+  useEffect(() => {
+    if (!blocked) return;
+    const unblock = () => setBlocked(false);
+    const events = ["pointerdown", "keydown", "touchstart", "scroll"] as const;
+    events.forEach((e) => window.addEventListener(e, unblock, { once: true, passive: true }));
+    return () => events.forEach((e) => window.removeEventListener(e, unblock));
+  }, [blocked]);
 
   const finishRef = useRef<() => void>(() => {});
+  const startedRef = useRef<() => void>(() => {});
+  const failRef = useRef<(refused: boolean) => void>(() => {});
 
   return (
     <section aria-label="Ghanamaxxing" className="gm-hero">
@@ -198,6 +234,18 @@ export function Hero({ children }: { children?: React.ReactNode }) {
           >
             <video
               key={walk.key}
+              // Start playback ourselves instead of trusting autoplay: Safari only allows it when the
+              // video is muted *before* it loads, and reports a refusal through play()'s promise.
+              ref={(el) => {
+                if (!el || el.dataset.started) return;
+                el.dataset.started = "1";
+                el.muted = true;
+                el.defaultMuted = true;
+                el.setAttribute("muted", "");
+                el.play()?.catch((err: DOMException) => {
+                  if (err?.name !== "AbortError") failRef.current(err?.name === "NotAllowedError");
+                });
+              }}
               className="gm-walker"
               style={{
                 left: walk.box.left - walk.clip.left,
@@ -219,22 +267,25 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 )
                   setBumped(walk.letter);
               }}
-              onPlaying={(e) => e.currentTarget.setAttribute("data-playing", "")}
+              onPlaying={(e) => {
+                e.currentTarget.setAttribute("data-playing", "");
+                startedRef.current();
+              }}
               onEnded={() => finishRef.current()}
-              onError={() => finishRef.current()}
+              onError={() => failRef.current(false)}
               src={clipUrl(walk.character.id)}
             />
           </div>
         )}
 
-        {reducedMotion && <ReducedMotionStill />}
+        {(reducedMotion || blocked) && <ReducedMotionStill />}
       </div>
       {children}
     </section>
   );
 }
 
-// With reduced motion: one character stands still in front of the word.
+// With reduced motion, or while the browser blocks video: one character stands still in front of the word.
 function ReducedMotionStill() {
   const c = HERO_CHARACTERS[0];
   return (
