@@ -1,137 +1,147 @@
 # Ghanamaxxing
 
-The launch board and live map of what Ghanaians are building. ghanamaxxing.com
+A place to discover and back the apps and startups coming out of Ghana, with a live map of where they're made.
+Live at **https://www.ghanamaxxing.com**. A project of [August Engine](https://www.augustengine.com).
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind v4 · Supabase (Postgres, auth, storage) · Vercel
+**Stack:** Next.js 15 (App Router, Turbopack) · TypeScript · Tailwind v4 · Supabase (Postgres, auth, storage) ·
+MapLibre + OpenFreeMap · Vercel
 
-> **Status: phase 1 of 5.** Database schema, seed import, launches list and launch pages.
-> Voting, rankings and spotlight come in phase 2, the map in phase 3, the landing hero in phase 4, and share cards, claims and removals in phase 5.
+## What's on the site
 
----
+- **Hero:** the word GHANAMAXXING in glossy 3D bubble letters (GHANA black, MAXXING Ghana green) filling the first
+  screen. Five characters made in Higgsfield walk out from behind the straight-edged letters (H, N, M) as an
+  overlapping chain, then rest and repeat. See [Hero characters](#hero-characters).
+- **Explore** (`/launches`): browse by **Newest** or **Shuffle** (reshuffled every visit), filter by type.
+  Nothing is ranked.
+- **Launch pages** (`/launch/[slug]`): logo, one-liner, type, city, link, and the **Ayekoo** button.
+- **Ayekoo** ("well done" in Twi): a one-tap cheer. No sign-in. Fills with gold, bursts into confetti, then offers
+  share buttons and three more launches to cheer. Counts show only on a launch's own page and are never used to sort.
+- **Spotlight of the week:** a random weekly pick (or a pinned one), on the home page.
+- **Map** (`/map` and on the home page): dark map with neon-ringed logo pins, clustering when zoomed out,
+  type filter chips, and a fly-in to Accra.
+- **Add yours** (`/submit`): no-account form; submissions are saved as `pending` for review.
+- **Suggest an edit** (`/launch/[slug]/suggest`) and **Remove a listing** (`/remove`): one-box forms, rate-limited.
+- **Admin** (`/admin`): launches by status, CSV/JSON import, add one, suggestions queue. Needs Google sign-in
+  (not set up yet; see below).
+- Google Analytics (`G-745YHYCMWY`), custom favicon/app icons.
 
 ## Run it locally
 
 ```bash
-npm install
+npm install          # also copies the MapLibre worker into public/maplibre (postinstall)
 npm run dev
 ```
 
-Open http://localhost:3000. **Before Supabase is connected, the site shows the real seed launches** from
-`data/seed-launches.json`, so you can preview the UI. Sign-in and admin need Supabase.
-
-## Connect Supabase (one-time setup)
-
-1. **Create a project** at [supabase.com](https://supabase.com) (the free tier is fine to start). Pick the region closest to Ghana; *West EU (London)* or *Central EU (Frankfurt)* are the closest options.
-2. **Create the tables.** Everything lives in its own `ghanamaxxing` schema, so the project can be shared with
-   other apps. In the Supabase dashboard open **SQL Editor** and run, in order:
-   `supabase/migrations/20261029000001_init.sql`, then `supabase/migrations/20261029000002_suggestions.sql`.
-   (Or with the CLI: `npx supabase link --project-ref <ref>` then `npx supabase db push`.)
-3. **Expose the schema.** In **Project Settings → Data API → Exposed schemas**, add `ghanamaxxing` and save.
-   Without this, the site can't read the tables.
-4. **Add your keys.** Copy `.env.example` to `.env.local` and fill in the values from
-   **Project Settings → API**: the project URL, the `anon` key and the `service_role` key.
-5. **Turn on Google sign-in:**
-   1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials) create an **OAuth client ID** (type: *Web application*).
-   2. Under *Authorised redirect URIs*, add `https://<your-project-ref>.supabase.co/auth/v1/callback`.
-   3. In Supabase go to **Authentication → Sign In / Providers → Google**, paste the client ID and secret, and enable it.
-   4. In Supabase go to **Authentication → URL Configuration**. Set *Site URL* to your live URL, and add
-      `http://localhost:3000/**` and `https://<your-domain>/**` to *Redirect URLs*.
-6. **Make yourself admin.** Sign in once on the site, then run this in the SQL Editor:
-   ```sql
-   update ghanamaxxing.profiles set is_admin = true
-   where id = (select id from auth.users where email = 'you@example.com');
-   ```
-   Then open `/admin`.
+Needs `.env.local` (see below). Without Supabase keys the site falls back to `data/seed-launches.json`.
 
 ## Environment variables
 
-| Name | Where it's used |
+| Name | Used for |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Everywhere (Supabase project URL) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Everywhere (public key, protected by row-level security) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Only** the `npm run seed` script. Server-only; never expose it in the browser or add it to Vercel unless needed. |
-| `NEXT_PUBLIC_SITE_URL` | Canonical links and share images, e.g. `https://ghanamaxxing.com` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL, just `https://<ref>.supabase.co` (no `/rest/v1`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public key; row-level security protects the data |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only.** Ayekoo, Add yours and `npm run seed` write with it. Never expose it. |
+| `AYEKOO_SALT` | Random string for hashing visitor IPs (spam limits). Falls back to the service key. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical links and share previews: `https://www.ghanamaxxing.com` in production |
 
-## Seeding launches
+All five are set in Vercel (production and preview). Locally they live in `.env.local` (git-ignored).
 
-Seeded launches are approved immediately, labelled **"Added by Ghanamaxxing"** and start at **0 votes**.
-Rows whose link (or chosen slug) already exists are skipped, so re-running an import is safe.
+## Database (Supabase)
 
-**From the admin (easiest):** go to `/admin/import` and upload a CSV or JSON file. You'll see a preview with any
-errors before anything is saved. Use `/admin/new` to add one launch at a time, including logo and screenshot uploads.
+Everything lives in its own **`ghanamaxxing` schema**, because the Supabase project is shared with another app
+(its tables are in `public`; don't touch them). Nothing runs on the shared `auth.users` table: a profile is created
+on first sign-in (`ghanamaxxing.ensure_profile()`, called from `/auth/callback`).
 
-**From the command line:**
+Migrations are run **by hand in the Supabase SQL Editor**, in order:
+
+1. `supabase/migrations/20261029000001_init.sql`: schema, tables, triggers, row-level security, storage bucket
+2. `supabase/migrations/20261029000002_suggestions.sql`: Suggest an edit
+3. `supabase/migrations/20261030000003_ayekoo.sql`: renames stars to ayekoos (all four are applied in production)
+4. `supabase/migrations/20261030000004_submissions.sql`: private `launch_submissions` for Add yours
+
+`ghanamaxxing` must be listed in **Project Settings → Data API → Exposed schemas**, or the site can't reach it.
+
+| Table | What it holds |
+|---|---|
+| `launches` | One row per launch. `status`: pending / approved / rejected / removed. `source`: ghanamaxxing (we added it) or maker. `ayekoo_count` kept in sync by a trigger. |
+| `ayekoos` | One per browser per launch (`voter_key` cookie id), plus a salted IP hash. Written only by the server. |
+| `launch_submissions` | Who submitted a pending launch (optional email, "I built this"). Private. |
+| `suggestions`, `removal_requests` | Visitor reports, private until reviewed. |
+| `spotlights` | Spotlight of the week, keyed by Monday (not written by the app yet; the pick is computed). |
+| `profiles`, `claims`, `hubs` | Sign-in profiles (`is_admin`), claim requests and a map hubs layer, for later. |
+
+**Approving submissions** (until admin sign-in exists): Table Editor → schema `ghanamaxxing` → `launches` → set
+`status` from `pending` to `approved`. The submitter's details are in `launch_submissions`.
+
+## Adding launches in bulk
 
 ```bash
 npm run seed -- data/my-launches.csv            # preview only
-npm run seed -- data/my-launches.csv --commit   # save to the database
+npm run seed -- data/my-launches.csv --commit   # save to the database (approved, "Added by Ghanamaxxing")
 ```
 
-### File format
-
-Start from `data/launches-template.csv`. JSON is an array of objects with the same keys, or
-`{ "launches": [...] }`. The maker links can also go in a nested `maker_socials` object.
-
-`data/seed-launches.json` is the starter list of real Ghanaian products (44, each checked live, with its own
-icon saved in `public/logos/`). Load it once Supabase is connected:
-
-```bash
-npm run seed -- data/seed-launches.json --commit
-```
-
-Launches given only a city or area are spread a little around that place so pins don't stack; set exact
-`lat`/`lng` to place one precisely.
+Start from `data/launches-template.csv` (JSON works too). Existing links are skipped, so re-running is safe.
+Logos go in `public/logos/<slug>.webp` and are referenced as `/logos/<slug>.webp`. Launches given only a city or
+area (see `src/config/places.ts`) are spread a little around it so pins don't stack.
 
 | Column | Required | Notes |
 |---|---|---|
-| `name` | ✔ | max 80 characters |
-| `tagline` | ✔ | one line, max 100 |
-| `url` | ✔ | must start with `https://` or `http://` |
-| `type` | ✔ | `AI`, `Fintech`, `Games`, `Edtech`, `Creative`, `Student projects`, `Other` (label or value, any case) |
-| `description` | | max 800 |
-| `logo_url`, `image_url` | | image URLs, or paths on this site like `/logos/hubtel.webp` (square logo, 16:9 screenshot) |
-| `city` | | city or Accra area. Known places (see `src/config/places.ts`) fill in coordinates automatically |
-| `lat`, `lng` | | override coordinates |
-| `maker_name` | | |
+| `name`, `tagline`, `url`, `type` | ✔ | tagline max 100; type is a label or value from `src/config/launch-types.ts` |
+| `description`, `logo_url`, `image_url`, `city`, `lat`, `lng`, `maker_name` | | |
 | `maker_x`, `maker_instagram`, `maker_linkedin`, `maker_github`, `maker_tiktok`, `maker_website` | | full URLs |
-| `launched_at` | | `YYYY-MM-DD`. **If empty, it defaults to 30 days ago** so a day-one import doesn't flood "Built This Week" and "Rising" (change this in `src/config/rankings.ts`) |
-| `slug` | | defaults to the name, e.g. `kente-pay` |
+| `launched_at` | | `YYYY-MM-DD`; if empty, 30 days ago so the seed list doesn't fill "Newest" |
 
 ## Things you'll want to edit
 
 | What | File |
 |---|---|
-| Launch types (labels, colours) | `src/config/launch-types.ts` |
-| Ranking and spotlight thresholds | `src/config/rankings.ts` |
-| Nav, footer links, contact email | `src/config/site.ts` |
-| Known cities and areas with coordinates | `src/config/places.ts` |
-| Colour palette | `src/app/globals.css` (`@theme`) |
+| Launch types (labels, ring colours) | `src/config/launch-types.ts` |
+| Hero characters, timing, size, walk-out letters | `src/config/characters.ts` |
+| MAXXING colour | `MAXXING_TINT` in `src/components/hero/hero.tsx` |
+| Ayekoo word/language (rotation) | `src/config/ayekoo.ts` |
+| Spotlight pin, preview sizes | `src/config/rankings.ts` |
+| Nav, footer, contact email, analytics ID | `src/config/site.ts` |
+| Known cities/areas and coordinates | `src/config/places.ts` |
+| Colours, buttons, hero/map CSS | `src/app/globals.css` |
 
-## Project layout
+## Hero characters
 
+Each character is three files in `public/hero/characters/`: `<id>.webm` (VP9 with alpha, for Chrome/Firefox),
+`<id>.mov` (HEVC with alpha, for Safari) and `<id>.webp` (still, for reduced motion and blocked playback).
+Clips are square, start and end on an empty frame, and the character enters and leaves through the right edge;
+the page mirrors them when needed.
+
+To make a new one: generate the clip in Higgsfield on a plain grey background, run it through Higgsfield's
+background remover, then:
+
+```bash
+python3 scripts/hero/make_character_clip.py original.mp4 nobg.mp4 public/hero/characters/<id>
 ```
-src/app/            pages and routes (admin under src/app/admin)
-src/components/     shared UI
-src/config/         everything you're likely to tweak
-src/lib/            data access, Supabase clients, import validation
-supabase/migrations database schema, security rules and triggers
-scripts/seed.mts    CLI seed import
-data/               CSV template and example launches
+
+Letter colours for MAXXING: `python3 scripts/hero/tint_letters.py <name> <r> <g> <b>`.
+Both scripts need numpy and Pillow; the clip script needs ffmpeg on macOS (for HEVC alpha).
+
+**Safari:** in Low Power Mode Safari refuses to autoplay video. The hero detects this, shows a still character,
+and unlocks both video players inside the visitor's first tap/click/key press (scrolling doesn't count).
+
+## Deploying
+
+Deploys are done **from this folder with the Vercel CLI** (GitHub isn't connected to the Vercel project yet, so
+pushes don't deploy):
+
+```bash
+npx vercel deploy --prod
 ```
 
-## Data model (summary)
+Vercel project: `ghanamaxxing` under *august osei's projects* (Hobby plan; switch to Pro before the site makes
+money). Domains: `ghanamaxxing.com` → `www.ghanamaxxing.com`. `.vercelignore` keeps `.env*` and build output out of
+uploads. If a build fails fetching Google Fonts, just redeploy (it's a transient Vercel/Google error).
 
-- `launches`: one row per launch. `status` is `pending`, `approved`, `rejected` or `removed`; `source` is `ghanamaxxing` or `maker`.
-  `vote_count` is kept in sync by a trigger. Non-admins can't change status, source, ownership or votes (enforced in the database).
-- `votes`: one per account per launch (primary key). Admin can soft-remove suspicious votes (`removed_at`).
-- `spotlights`, `claims`, `removal_requests`, `hubs`: created now, used in later phases.
-- `profiles`: created automatically on first sign-in. `is_admin` gives access to `/admin`.
+To run a production build locally next to `npm run dev`: `NEXT_DIST_DIR=.next-build npm run build`.
 
-## Deploying (Vercel)
+## Not built yet
 
-1. Import the GitHub repo in Vercel.
-2. Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEXT_PUBLIC_SITE_URL` as environment variables.
-3. Add the Vercel URL (and later `https://ghanamaxxing.com/**`) to Supabase's **Redirect URLs**.
-
-> Vercel's free **Hobby** plan is for non-commercial use. It's fine while building, but switch to **Pro ($20/month)**
-> before the site makes money (ads, sponsorships, paid listings).
+- Google sign-in (needed for `/admin`), claim-a-listing, removal requests queue in admin
+- Saving the Spotlight pick to `spotlights` (no-repeat rule, admin override)
+- Share images per launch (Open Graph), Hubs map layer, weekly ayekoo email to makers
+- Ayekoo phrases in other Ghanaian languages (add to `src/config/ayekoo.ts` once checked by fluent speakers)
