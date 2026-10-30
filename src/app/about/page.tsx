@@ -21,14 +21,14 @@ export default function AboutPage() {
           keep growing.
         </p>
         <p>
-          Signed-in people star the launches they love. Every launch starts with zero stars, and the most-starred board
-          only opens once there are enough stars to mean something. Until then, browse what&apos;s newest or dig up the{" "}
-          <Link href="/launches?board=rare-finds" className={link}>rare finds</Link>.
+          Nothing here is a competition. The makers didn&apos;t ask to be listed, so there are no rankings or leaderboards.
+          If you love something, tap <em>Ayekoo</em> (well done, in Twi) to cheer the team on. Browse what&apos;s newest,
+          or <Link href="/launches?board=shuffle" className={link}>shuffle</Link> for something you haven&apos;t seen.
         </p>
         <p>
           We added the first listings ourselves so you can explore from day one. They&apos;re labelled{" "}
           <em>Added by Ghanamaxxing</em>. If you know a detail we got wrong or left out, use{" "}
-          <em>Suggest an edit</em> on any listing. If it&apos;s yours, you&apos;ll be able to claim it.
+          <em>Suggest an edit</em> on any listing. If it&apos;s yours, you can claim it, or ask us to take it down.
         </p>
         <p>
           Building something? <Link href="/submit" className={link}>Add it</Link>.

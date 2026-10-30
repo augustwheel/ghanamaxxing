@@ -24,6 +24,6 @@ export type Launch = {
   status: LaunchStatus;
   claimed_by: string | null;
   launched_at: string | null;
-  star_count: number;
+  ayekoo_count: number;
   created_at: string;
 };

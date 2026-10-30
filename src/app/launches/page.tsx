@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LaunchCard } from "@/components/launch-card";
+import { LaunchList } from "@/components/launch-list";
 import { TypeFilter } from "@/components/type-filter";
 import { getLaunchType } from "@/config/launch-types";
-import { LockedBoard } from "@/components/home/rankings-preview";
-import { BOARD_TABS, computeBoards, parseBoardParam } from "@/lib/boards";
+import { BOARD_TABS, newestLaunches, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
 
 export const revalidate = 60;
@@ -29,17 +28,16 @@ export default async function LaunchesPage({ searchParams }: Props) {
   const tabId = parseBoardParam(sp.board);
   const tab = BOARD_TABS.find((t) => t.id === tabId)!;
   const launches = await getApprovedLaunches({ type });
-  const board = computeBoards(launches, 200)[tabId];
-  const ranked = board.launches;
+  const list = newestLaunches(launches);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
       <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">Launches</h1>
       <p className="mt-3 max-w-xl text-lg text-muted">
-        Apps and startups from across Ghana. Browse what&apos;s new, star what you like, and dig up the rare finds.
+        Apps and startups from across Ghana. Browse what&apos;s new, shuffle for something unexpected, and say ayekoo to the ones you love.
       </p>
 
-      <nav aria-label="Boards" className="mt-8 flex gap-1 overflow-x-auto rounded-full bg-surface p-1.5 [scrollbar-width:none]">
+      <nav aria-label="Browse" className="mt-8 flex gap-1 overflow-x-auto rounded-full bg-surface p-1.5 [scrollbar-width:none]">
         {BOARD_TABS.map((t) => {
           const q = new URLSearchParams({ board: t.id, ...(type ? { type } : {}) });
           const on = t.id === tabId;
@@ -63,21 +61,13 @@ export default async function LaunchesPage({ searchParams }: Props) {
       </div>
 
       <p className="mt-6 px-2 text-sm text-muted">{tab.blurb}</p>
-      {board.locked ? (
-        <div className="mt-2 flex">
-          <LockedBoard {...board.locked} />
-        </div>
-      ) : ranked.length ? (
-        <ol className="mt-2 flex flex-col">
-          {ranked.map((launch, i) => (
-            <LaunchCard key={launch.id} launch={launch} rank={i + 1} />
-          ))}
-        </ol>
+      {list.length ? (
+        <LaunchList launches={list} shuffle={tabId === "shuffle"} />
       ) : (
         <div className="mt-6 rounded-[2rem] bg-surface px-6 py-12 text-center">
           <p className="font-display text-2xl font-semibold">Nothing here yet</p>
-          <p className="mt-2 text-muted">Be the first {type ? getLaunchType(type).label : ""} launch on this board.</p>
-          <Link href="/submit" className="btn mt-6">Post your launch</Link>
+          <p className="mt-2 text-muted">Know a {type ? getLaunchType(type).label : ""} launch from Ghana we&apos;re missing?</p>
+          <Link href="/submit" className="btn mt-6">Add it</Link>
         </div>
       )}
     </div>

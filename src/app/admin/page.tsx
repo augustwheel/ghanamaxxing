@@ -17,7 +17,7 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
   const [{ data: launches, error }, counts] = await Promise.all([
     supabase
       .from("launches")
-      .select("id, slug, name, type, city, source, status, star_count, launched_at, created_at")
+      .select("id, slug, name, type, city, source, status, ayekoo_count, launched_at, created_at")
       .eq("status", status)
       .order("created_at", { ascending: false })
       .limit(500),
@@ -57,13 +57,13 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
                 <th className="py-2 pr-4 font-normal">Launch</th>
                 <th className="py-2 pr-4 font-normal">Type</th>
                 <th className="py-2 pr-4 font-normal">Source</th>
-                <th className="py-2 pr-4 font-normal">Stars</th>
+                <th className="py-2 pr-4 font-normal">Ayekoo</th>
                 <th className="py-2 pr-4 font-normal">Launched</th>
                 <th className="py-2 font-normal">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {(launches as Pick<Launch, "id" | "slug" | "name" | "type" | "city" | "source" | "star_count" | "launched_at">[]).map((l) => (
+              {(launches as Pick<Launch, "id" | "slug" | "name" | "type" | "city" | "source" | "ayekoo_count" | "launched_at">[]).map((l) => (
                 <tr key={l.id} className="border-b border-line/50">
                   <td className="py-2 pr-4">
                     <Link href={`/launch/${l.slug}`} className="font-medium hover:text-chalk">
@@ -73,7 +73,7 @@ export default async function AdminLaunchesPage({ searchParams }: Props) {
                   </td>
                   <td className="py-2 pr-4"><TypeChip type={l.type} /></td>
                   <td className="py-2 pr-4 text-muted">{l.source}</td>
-                  <td className="py-2 pr-4 tabular-nums">{l.star_count}</td>
+                  <td className="py-2 pr-4 tabular-nums">{l.ayekoo_count}</td>
                   <td className="py-2 pr-4 text-muted">{formatDate(l.launched_at) ?? "—"}</td>
                   <td className="py-2">
                     <div className="flex gap-2">

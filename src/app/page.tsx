@@ -3,7 +3,7 @@ import { Hero } from "@/components/hero/hero";
 import { RankingsPreview } from "@/components/home/rankings-preview";
 import { SpotlightCard } from "@/components/home/spotlight-card";
 import { LaunchMap } from "@/components/map/launch-map";
-import { BOARD_TABS, computeBoards, starOfTheWeek, weekStart } from "@/lib/boards";
+import { BOARD_TABS, boardPreviews, spotlightOfTheWeek, weekStart } from "@/lib/boards";
 import { getApprovedLaunches } from "@/lib/launches";
 
 export const revalidate = 60;
@@ -12,8 +12,8 @@ const link = "underline decoration-2 decoration-line underline-offset-[0.18em] t
 
 export default async function HomePage() {
   const launches = await getApprovedLaunches();
-  const spotlight = starOfTheWeek(launches);
-  const boards = computeBoards(launches);
+  const spotlight = spotlightOfTheWeek(launches);
+  const boards = boardPreviews(launches);
 
   return (
     <>
@@ -29,7 +29,7 @@ export default async function HomePage() {
           <Link href="/launches?type=ai" className={link}>AI</Link> tools,{" "}
           <Link href="/launches?type=fintech" className={link}>fintech</Link>,{" "}
           <Link href="/launches?type=games" className={link}>games</Link> and more, from Accra, Kumasi, Tamale and
-          beyond. Star the ones you love, find the builders on the <a href="#map" className={link}>map</a>, and if
+          beyond. Say ayekoo to the ones you love, find the builders on the <a href="#map" className={link}>map</a>, and if
           you know one we&apos;ve missed or you&apos;re building your own, <Link href="/submit" className={link}>add it</Link>.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
@@ -38,9 +38,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section aria-label="Star of the week and boards" className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 lg:grid-cols-[5fr_7fr]">
+      <section aria-label="Spotlight of the week and browse" className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 lg:grid-cols-[5fr_7fr]">
         {spotlight && <SpotlightCard launch={spotlight} week={weekStart()} />}
-        <RankingsPreview tabs={BOARD_TABS.map((t) => ({ ...t, ...boards[t.id] }))} />
+        <RankingsPreview tabs={BOARD_TABS.map((t) => ({ ...t, launches: boards[t.id] }))} all={launches} />
       </section>
 
       <section id="map" aria-label="Map of launches" className="mt-24 scroll-mt-14">

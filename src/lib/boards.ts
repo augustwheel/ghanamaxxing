@@ -1,21 +1,16 @@
 import "server-only";
-import { BOARDS, STAR_OF_THE_WEEK } from "@/config/rankings";
+import { BOARDS, SPOTLIGHT } from "@/config/rankings";
 import type { Launch } from "@/lib/types";
 
-// The boards are honest about what they are: nothing claims to be "the people's choice" until
-// people have actually starred things.
-//
-// For now these are computed in memory from each launch's total star_count. Once sign-in and
-// starring are live, "Most starred" switches to stars given in the last BOARDS.mostStarredWindowDays.
+// Ways to browse, not rankings. The makers didn't ask to be here, so nothing pits them against
+// each other: no "most popular", and ayekoo counts never decide order.
 
 export const BOARD_TABS = [
   { id: "newest", label: "Newest", blurb: "Just added to the board" },
-  { id: "most-starred", label: "Most starred", blurb: "The launches people starred most this week" },
-  { id: "rare-finds", label: "Rare finds", blurb: "Good things with only a few stars so far. Go find them." },
+  { id: "shuffle", label: "Shuffle", blurb: "A different mix every time you look, so everyone gets seen" },
 ] as const;
 
 export type BoardId = (typeof BOARD_TABS)[number]["id"];
-export type Board = { launches: Launch[]; locked?: { have: number; need: number } };
 
 export function parseBoardParam(value: string | string[] | undefined): BoardId {
   const v = Array.isArray(value) ? value[0] : value;
@@ -24,28 +19,27 @@ export function parseBoardParam(value: string | string[] | undefined): BoardId {
 
 const newestFirst = (a: Launch, b: Launch) => (b.launched_at ?? b.created_at).localeCompare(a.launched_at ?? a.created_at);
 
-// A shuffle that stays the same for everyone all day (Accra time is UTC).
-function dailyShuffle<T extends { slug: string }>(list: T[], date = new Date()) {
-  const day = date.toISOString().slice(0, 10);
+export function newestLaunches(launches: Launch[], n = Infinity) {
+  return [...launches].sort(newestFirst).slice(0, n);
+}
+
+/** Server-side preview for the home page; the shuffle tab reshuffles in the browser on every visit. */
+export function boardPreviews(launches: Launch[], n: number = BOARDS.previewSize): Record<BoardId, Launch[]> {
+  return { newest: newestLaunches(launches, n), shuffle: weeklyShuffle(launches).slice(0, n) };
+}
+
+// A shuffle that stays the same for everyone for a given key (used for the weekly spotlight).
+function seededShuffle<T extends { slug: string }>(list: T[], seed: string) {
   const score = (s: string) => {
     let h = 2166136261;
-    for (const c of day + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+    for (const c of seed + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
     return h;
   };
   return [...list].sort((a, b) => score(a.slug) - score(b.slug));
 }
 
-export function computeBoards(launches: Launch[], n: number = BOARDS.previewSize): Record<BoardId, Board> {
-  const totalStars = launches.reduce((sum, l) => sum + l.star_count, 0);
-  const starred = launches.filter((l) => l.star_count > 0).sort((a, b) => b.star_count - a.star_count || newestFirst(a, b));
-  return {
-    newest: { launches: [...launches].sort(newestFirst).slice(0, n) },
-    "most-starred":
-      totalStars < BOARDS.mostStarredUnlockStars
-        ? { launches: [], locked: { have: totalStars, need: BOARDS.mostStarredUnlockStars } }
-        : { launches: starred.slice(0, n) },
-    "rare-finds": { launches: dailyShuffle(launches.filter((l) => l.star_count <= BOARDS.rareMaxStars)).slice(0, n) },
-  };
+function weeklyShuffle<T extends { slug: string }>(list: T[], date = new Date()) {
+  return seededShuffle(list, weekStart(date));
 }
 
 /** Monday (Accra time = UTC) of the week containing `date`, as YYYY-MM-DD. */
@@ -55,22 +49,13 @@ export function weekStart(date = new Date()) {
   return d.toISOString().slice(0, 10);
 }
 
-// Star of the week: your pin if set, otherwise a random pick for the week from launches that look
-// good in the spotlight (logo and description first; logo-only if none are complete yet).
-// Once Supabase is live the pick is saved in the spotlights table, which also enforces no repeats.
-export function starOfTheWeek(launches: Launch[], date = new Date()) {
-  const pinned = STAR_OF_THE_WEEK.pinned && launches.find((l) => l.slug === STAR_OF_THE_WEEK.pinned);
+// Spotlight of the week: your pin if set, otherwise a random pick for the week from launches that
+// look good in the spotlight (logo and description first; logo-only if none are complete yet).
+// Once picks are saved in the spotlights table, that also enforces no repeats.
+export function spotlightOfTheWeek(launches: Launch[], date = new Date()) {
+  const pinned = SPOTLIGHT.pinned && launches.find((l) => l.slug === SPOTLIGHT.pinned);
   if (pinned) return pinned;
-  const topStarred = new Set(
-    [...launches]
-      .filter((l) => l.star_count > 0)
-      .sort((a, b) => b.star_count - a.star_count)
-      .slice(0, STAR_OF_THE_WEEK.excludeMostStarredTop)
-      .map((l) => l.id),
-  );
-  const pool = launches.filter((l) => !topStarred.has(l.id));
-  const complete = pool.filter((l) => l.logo_url && l.description);
-  const eligible = complete.length ? complete : pool.filter((l) => l.logo_url);
-  const monday = new Date(`${weekStart(date)}T00:00:00Z`);
-  return dailyShuffle(eligible.length ? eligible : pool, monday)[0] ?? null;
+  const complete = launches.filter((l) => l.logo_url && l.description);
+  const eligible = complete.length ? complete : launches.filter((l) => l.logo_url);
+  return weeklyShuffle(eligible.length ? eligible : launches, date)[0] ?? null;
 }

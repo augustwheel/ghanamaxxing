@@ -7,7 +7,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import type { Launch } from "@/lib/types";
 
 const LAUNCH_COLUMNS =
-  "id, slug, name, tagline, description, url, logo_url, image_url, type, city, lat, lng, maker_name, maker_socials, source, status, claimed_by, launched_at, star_count, created_at";
+  "id, slug, name, tagline, description, url, logo_url, image_url, type, city, lat, lng, maker_name, maker_socials, source, status, claimed_by, launched_at, ayekoo_count, created_at";
 
 export async function getApprovedLaunches({ type, limit = 200 }: { type?: LaunchType; limit?: number } = {}) {
   if (!isSupabaseConfigured) {
@@ -53,7 +53,7 @@ function sampleLaunches(): Launch[] {
       id: `sample-${i}`,
       type: r.type as LaunchType,
       claimed_by: null,
-      star_count: 0,
+      ayekoo_count: 0,
       created_at: r.launched_at,
     }))
     .sort((a, b) => b.launched_at.localeCompare(a.launched_at));

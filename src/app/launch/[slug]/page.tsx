@@ -4,9 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
-import { StarIcon } from "@/components/star-icon";
+import { AyekooButton } from "@/components/ayekoo-button";
 import { getLaunchType } from "@/config/launch-types";
-import { plural } from "@/lib/format";
 import { getLaunchBySlug } from "@/lib/launches";
 import type { MakerSocials } from "@/lib/types";
 
@@ -64,20 +63,14 @@ export default async function LaunchPage({ params }: Props) {
               <span style={{ color: type.color }}>{type.label}</span>
               {launch.city && <span className="text-muted"> in {launch.city}</span>}
             </p>
-            <p className="mt-1 text-sm">
-              <SourceLabel source={launch.source} claimed={Boolean(launch.claimed_by)} />
-            </p>
           </div>
         </header>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-wrap items-start gap-3">
           <a href={launch.url} target="_blank" rel="noopener" className="btn !px-6 !py-3 text-lg">
             Visit {launch.name}
           </a>
-          <span className="btn-quiet !px-5 !py-3 text-lg" title="Starring opens soon">
-            <StarIcon className="h-4 w-4" />
-            {plural(launch.star_count, "star")}
-          </span>
+          <AyekooButton launchId={launch.id} initialCount={launch.ayekoo_count} />
         </div>
 
         {launch.image_url && (
@@ -111,7 +104,9 @@ export default async function LaunchPage({ params }: Props) {
           </p>
         )}
 
-        <p className="mt-10 text-sm text-muted">
+        <SourceLabel name={launch.name} slug={launch.slug} source={launch.source} claimed={Boolean(launch.claimed_by)} />
+
+        <p className="mt-6 text-sm text-muted">
           Something wrong or missing?{" "}
           <Link href={`/launch/${launch.slug}/suggest`} className="underline decoration-line underline-offset-4 hover:text-chalk hover:decoration-chalk">
             Suggest an edit

@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { LaunchLogo } from "@/components/launch-logo";
 import { getLaunchType } from "@/config/launch-types";
-import { StarIcon } from "@/components/star-icon";
 import type { Launch } from "@/lib/types";
 
 const formatDay = (isoDate: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${isoDate}T00:00:00Z`));
 
-// Star of the week. The launch's own type colour is the only colour on it.
+// Spotlight of the week: a celebration, not a winner. The launch's own type colour is the only colour on it.
 export function SpotlightCard({ launch, week }: { launch: Launch; week: string }) {
   const type = getLaunchType(launch.type);
   return (
@@ -22,8 +21,7 @@ export function SpotlightCard({ launch, week }: { launch: Launch; week: string }
         style={{ background: type.color }}
       />
       <p className="flex items-center gap-2 font-display text-muted">
-        <StarIcon className="h-4 w-4 text-chalk" />
-        Star of the week
+        Spotlight of the week
         <span className="text-sm">from {formatDay(week)}</span>
       </p>
       <div className="mt-6">

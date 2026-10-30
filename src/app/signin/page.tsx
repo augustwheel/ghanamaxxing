@@ -14,7 +14,7 @@ export default async function SignInPage({ searchParams }: Props) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/hero/letters/G.webp" alt="" width={72} height={81} className="mx-auto h-20 w-auto" />
       <h1 className="mt-6 font-display text-4xl font-bold tracking-tight">Sign in to Ghanamaxxing</h1>
-      <p className="mt-3 text-muted">Sign in to star launches, post your own or claim one.</p>
+      <p className="mt-3 text-muted">Sign in to add your launch or claim one.</p>
       {error && <p className="mt-4 rounded-2xl bg-red/15 px-4 py-2 text-sm text-red">Google sign-in didn&apos;t finish. Try again.</p>}
       <div className="mt-8">
         {isSupabaseConfigured ? (

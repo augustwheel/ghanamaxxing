@@ -236,7 +236,7 @@ export function LaunchMap({ launches, className, interactiveScroll = false }: Pr
                 <p className="line-clamp-2 text-sm text-muted">{selected.tagline}</p>
                 <p className="mt-2 text-sm">
                   <span style={{ color: getLaunchType(selected.type).color }}>{getLaunchType(selected.type).label}</span>
-                  <span className="text-muted"> with {selected.star_count} {selected.star_count === 1 ? "star" : "stars"}</span>
+                  {selected.city && <span className="text-muted"> in {selected.city}</span>}
                 </p>
               </div>
               <button onClick={() => setSelected(null)} aria-label="Close" className="-mt-1 -mr-1 rounded-full p-2 text-muted hover:text-chalk">

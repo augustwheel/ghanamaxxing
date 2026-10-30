@@ -263,3 +263,15 @@ body {
 .maplibregl-ctrl-attrib {
   font-size: 10px;
 }
+
+/* Ayekoo button: a little clap when you tap it. */
+.gm-clap {
+  display: inline-block;
+  animation: gm-clap 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes gm-clap {
+  0% { transform: scale(1) rotate(0); }
+  35% { transform: scale(1.5) rotate(-14deg); }
+  65% { transform: scale(0.9) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
