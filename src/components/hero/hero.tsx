@@ -48,15 +48,26 @@ const canHevcAlpha = () =>
 const clipUrl = (id: string) =>
   `/hero/characters/${id}.${canHevcAlpha() ? "mov" : "webm"}`;
 
+// Two players, so the next character can walk out while the current one walks back in.
+const PLAYERS = 2;
+type Slots = (Walk | null)[];
+
 export function Hero({ children }: { children?: React.ReactNode }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const letterRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [walk, setWalk] = useState<Walk | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>(Array(PLAYERS).fill(null));
+  const [walks, setWalks] = useState<Slots>(Array(PLAYERS).fill(null));
+  const walksRef = useRef<Slots>(Array(PLAYERS).fill(null));
   const [bumped, setBumped] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
-  // Safari (Low Power Mode, some site settings) can refuse to autoplay even muted video. Then we
-  // show the characters as stills and start the animation on the visitor's first tap or scroll.
+  // Safari (Low Power Mode, some site settings) can refuse to autoplay even muted video. Then a
+  // still character shows, and the first tap, click or key press unlocks the players.
   const [blocked, setBlocked] = useState(false);
+
+  const setSlot = useCallback((slot: number, walk: Walk | null) => {
+    walksRef.current = walksRef.current.map((w, i) => (i === slot ? walk : w));
+    setWalks(walksRef.current);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -66,181 +77,187 @@ export function Hero({ children }: { children?: React.ReactNode }) {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  // Works out where a character should stand for a given letter, from the live layout.
-  const placeFor = useCallback(
-    (character: HeroCharacter): Omit<Walk, "key" | "character"> | null => {
-      const stage = stageRef.current;
-      if (!stage) return null;
-      const s = stage.getBoundingClientRect();
-      const cells = letterRefs.current.map((el, i) => ({
-        el,
-        i,
-        r: el!.getBoundingClientRect(),
-      }));
-      const rowTops = [...new Set(cells.map((c) => Math.round(c.r.top)))].sort((a, b) => a - b);
+  // Works out where a character should stand, from the live layout. `busy` letters are already in
+  // use by the other player, so two characters never come out of the same letter at once.
+  const placeFor = useCallback((character: HeroCharacter, busy: number[]): Omit<Walk, "key" | "character"> | null => {
+    const stage = stageRef.current;
+    if (!stage) return null;
+    const s = stage.getBoundingClientRect();
+    const cells = letterRefs.current.map((el, i) => ({ el, i, r: el!.getBoundingClientRect() }));
+    const rowTops = [...new Set(cells.map((c) => Math.round(c.r.top)))].sort((a, b) => a - b);
     const eligible = cells.filter((c) => (HERO_TIMING.walkOutLetters as readonly string[]).includes(WORD[c.i]));
     const inRow = (row: number) => eligible.filter((c) => Math.round(c.r.top) === rowTops[row]);
     // Top and bottom mean the first/last row that has a straight-edged letter; middle is any row between.
     const rows = rowTops.map((_, k) => k).filter((k) => inRow(k).length);
     if (!rows.length) return null;
     const middle = rows.slice(1, -1);
-    const row =
-      character.row === "top" ? rows[0] : character.row === "bottom" ? rows[rows.length - 1] : pick(middle.length ? middle : rows);
-    const candidates = inRow(row);
+    const row = character.row === "top" ? rows[0] : character.row === "bottom" ? rows[rows.length - 1] : pick(middle.length ? middle : rows);
+    const free = (list: typeof eligible) => list.filter((c) => !busy.includes(c.i));
+    const candidates = free(inRow(row)).length ? free(inRow(row)) : free(eligible);
+    if (!candidates.length) return null;
     const c = pick(candidates);
-      const img = c.el!.querySelector("img")!.getBoundingClientRect();
-      // The character fills ~85% of its square clip, so this makes them about half the letter's height.
-      const size =
-        ((img.height * HERO_TIMING.characterHeight) / 0.85) *
-        (character.scale ?? 1);
-      const centerX = img.left + img.width / 2 - s.left;
-      const mirror = centerX < s.width / 2; // always walk toward the middle of the screen
-      // The clip's entry edge sits just inside the letter's outer edge, and everything on the letter's
-      // side of that edge is cut away, so the character is unseen until they step past the letter.
-      const edge = mirror
-        ? img.right - s.left - img.width * 0.04
-        : img.left - s.left + img.width * 0.04;
-      const left = mirror ? edge - size * 0.1 : edge - size * 0.9;
-      const clip = mirror
-        ? { left: edge, width: s.width - edge }
-        : { left: 0, width: edge };
-      return {
-        letter: c.i,
-        mirror,
-        clip,
-        box: { left, bottom: s.bottom - img.bottom - size * 0.05, size },
-      };
-    },
-    [],
-  );
+    const img = c.el!.querySelector("img")!.getBoundingClientRect();
+    // The character fills ~85% of its square clip.
+    const size = ((img.height * HERO_TIMING.characterHeight) / 0.85) * (character.scale ?? 1);
+    const centerX = img.left + img.width / 2 - s.left;
+    const mirror = centerX < s.width / 2; // always walk toward the middle of the screen
+    // The clip's entry edge sits just inside the letter's outer edge, and everything on the letter's
+    // side of that edge is cut away, so the character is unseen until they step past the letter.
+    const edge = mirror ? img.right - s.left - img.width * 0.04 : img.left - s.left + img.width * 0.04;
+    const left = mirror ? edge - size * 0.1 : edge - size * 0.9;
+    const clip = mirror ? { left: edge, width: s.width - edge } : { left: 0, width: edge };
+    return { letter: c.i, mirror, clip, box: { left, bottom: s.bottom - img.bottom - size * 0.05, size } };
+  }, []);
 
-  // The sequencer: characters take turns in config order (top, top, middle, bottom, bottom),
-  // one at a time. Pauses while the hero is off-screen or the tab is hidden.
+  // The sequencer: the five characters appear in config order as a chain. Each new one starts
+  // walking out as the previous one turns back into its letter. After all five, a short rest,
+  // then the cycle repeats. Pauses while the hero is off-screen or the tab is hidden.
   useEffect(() => {
     if (reducedMotion || blocked) return;
-    let turn = 0;
-    let failures = 0;
-    let watchdog: ReturnType<typeof setTimeout> | undefined;
+    const N = HERO_CHARACTERS.length;
+    let next = 0; // next character in this cycle
     let key = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
     let visible = true;
-    let playing = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const watchdogs: (ReturnType<typeof setTimeout> | undefined)[] = Array(PLAYERS).fill(undefined);
+    const handedOff: boolean[] = Array(PLAYERS).fill(true);
+    const idle = () => walksRef.current.every((w) => !w);
 
-    const queueNext = (delay: number) => {
+    const launch = () => {
       clearTimeout(timer);
-      if (!visible || document.hidden || playing) return;
-      const next = HERO_CHARACTERS[turn % HERO_CHARACTERS.length];
-      fetch(clipUrl(next.id), { priority: "low" } as RequestInit).catch(
-        () => {},
-      ); // warm the cache
-      timer = setTimeout(start, delay);
-    };
-
-    const start = () => {
-      const character = HERO_CHARACTERS[turn++ % HERO_CHARACTERS.length];
-      const place = placeFor(character);
-      if (!place) return queueNext(500);
-      playing = true;
-      setWalk({ key: ++key, character, ...place });
+      if (!visible || document.hidden || next >= N) return;
+      const slot = walksRef.current.findIndex((w) => !w);
+      if (slot < 0) return;
+      const character = HERO_CHARACTERS[next++];
+      const busy = walksRef.current.filter(Boolean).map((w) => w!.letter);
+      const place = placeFor(character, busy);
+      if (!place) return launch();
+      handedOff[slot] = false;
+      setSlot(slot, { key: ++key, character, ...place });
+      if (next < N) fetch(clipUrl(HERO_CHARACTERS[next].id), { priority: "low" } as RequestInit).catch(() => {});
       // Safari sometimes blocks playback without saying so. If the clip has loaded but still isn't
       // playing after a few seconds, treat it as blocked; if it's still loading, give it longer.
-      clearTimeout(watchdog);
+      clearTimeout(watchdogs[slot]);
       const check = (waited: number) => {
-        const el = videoRef.current;
+        const el = videoRefs.current[slot];
         if (!el || !el.paused) return;
-        if (el.readyState >= 2) return failRef.current(true);
-        if (waited >= 9000) return failRef.current(false);
-        watchdog = setTimeout(() => check(waited + 1500), 1500);
+        if (el.readyState >= 2) return failRef.current(slot, true);
+        if (waited >= 9000) return failRef.current(slot, false);
+        watchdogs[slot] = setTimeout(() => check(waited + 1500), 1500);
       };
-      watchdog = setTimeout(() => check(3500), 3500);
+      watchdogs[slot] = setTimeout(() => check(3500), 3500);
     };
 
-    finishRef.current = () => {
-      clearTimeout(watchdog);
-      playing = false;
-      setWalk(null);
-      const [a, b] = HERO_TIMING.gapMs;
-      queueNext(a + Math.random() * (b - a));
+    // After a player finishes (or gives up): free it, keep the chain going, rest after a full cycle.
+    const release = (slot: number) => {
+      clearTimeout(watchdogs[slot]);
+      setSlot(slot, null);
+      if (!handedOff[slot]) {
+        handedOff[slot] = true;
+        launch();
+      }
+      if (next >= N && idle()) {
+        next = 0;
+        const [a, b] = HERO_TIMING.cycleRestMs;
+        timer = setTimeout(launch, a + Math.random() * (b - a));
+      }
     };
 
-    startedRef.current = () => {
-      clearTimeout(watchdog);
+    handoffRef.current = (slot) => {
+      if (handedOff[slot]) return;
+      handedOff[slot] = true;
+      launch();
+    };
+    endRef.current = release;
+    startedRef.current = (slot) => {
+      clearTimeout(watchdogs[slot]);
       failures = 0;
     };
-
-    // A clip that couldn't play. `refused` means the browser said no (autoplay blocked); twice in a
-    // row switches to stills until the visitor interacts. Slow or broken clips are just skipped.
-    failRef.current = (refused) => {
-      clearTimeout(watchdog);
-      playing = false;
-      setWalk(null);
-      if (refused && ++failures >= 2) setBlocked(true);
-      else queueNext(HERO_TIMING.firstDelayMs);
+    // `refused` means the browser said no (autoplay blocked); twice switches to the still fallback.
+    failRef.current = (slot, refused) => {
+      if (refused && ++failures >= 2) {
+        watchdogs.forEach((w) => clearTimeout(w));
+        walksRef.current.forEach((_, i) => setSlot(i, null));
+        return setBlocked(true);
+      }
+      release(slot);
     };
 
+    const resume = () => {
+      if (!idle()) return;
+      if (next >= N) next = 0;
+      clearTimeout(timer);
+      timer = setTimeout(launch, HERO_TIMING.firstDelayMs);
+    };
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
-      if (visible) queueNext(HERO_TIMING.firstDelayMs);
+      if (visible) resume();
       else clearTimeout(timer);
     });
     if (stageRef.current) io.observe(stageRef.current);
-    const onVis = () =>
-      document.hidden
-        ? clearTimeout(timer)
-        : queueNext(HERO_TIMING.firstDelayMs);
+    const onVis = () => (document.hidden ? clearTimeout(timer) : resume());
     document.addEventListener("visibilitychange", onVis);
     return () => {
       clearTimeout(timer);
-      clearTimeout(watchdog);
+      watchdogs.forEach((w) => clearTimeout(w));
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [reducedMotion, blocked, placeFor]);
+  }, [reducedMotion, blocked, placeFor, setSlot]);
 
-  // Play the walk's clip on the one reusable video element.
+  // Play each player's clip when its walk changes.
+  const walkKeys = walks.map((w) => w?.key ?? 0).join(",");
   useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    if (!walk) {
-      el.pause();
+    walksRef.current.forEach((walk, slot) => {
+      const el = videoRefs.current[slot];
+      if (!el) return;
+      if (!walk) {
+        el.pause();
+        el.removeAttribute("data-playing");
+        return;
+      }
+      if (el.dataset.key === String(walk.key)) return;
+      el.dataset.key = String(walk.key);
       el.removeAttribute("data-playing");
-      return;
-    }
-    el.removeAttribute("data-playing");
-    el.src = clipUrl(walk.character.id);
-    el.play()?.catch((err: DOMException) => {
-      if (err?.name !== "AbortError") failRef.current(err?.name === "NotAllowedError");
+      el.src = clipUrl(walk.character.id);
+      el.play()?.catch((err: DOMException) => {
+        if (err?.name !== "AbortError") failRef.current(slot, err?.name === "NotAllowedError");
+      });
     });
-  }, [walk]);
+  }, [walkKeys]);
 
-  // While blocked, wait for a tap, click or key press: Safari only allows video to start while it's
-  // handling one, so the element is unlocked right inside the handler. Once an element has played
-  // from a gesture, Safari lets it keep playing, which is why every character shares one element.
+  // While blocked, wait for a tap, click or key press: Safari only lets video start while it's
+  // handling one, so both players are unlocked right inside the handler. Once a player has played
+  // from a gesture, Safari lets it keep playing, which is why the players are reused.
   useEffect(() => {
     if (!blocked) return;
-    const el = videoRef.current;
-    if (el && !el.getAttribute("src")) el.src = clipUrl(HERO_CHARACTERS[0].id);
+    videoRefs.current.forEach((el, i) => {
+      if (el && !el.getAttribute("src")) el.src = clipUrl(HERO_CHARACTERS[i % HERO_CHARACTERS.length].id);
+    });
     const unlock = () => {
-      const v = videoRef.current;
-      if (!v) return;
-      v.muted = true;
-      const p = v.play();
-      if (!p) return setBlocked(false);
-      p.then(() => {
-        v.pause();
-        v.currentTime = 0;
-        setBlocked(false);
-      }).catch(() => {}); // still refused: keep waiting for the next gesture
+      const plays = videoRefs.current.map((v) => {
+        if (!v) return Promise.resolve();
+        v.muted = true;
+        return (v.play() ?? Promise.resolve()).then(() => {
+          v.pause();
+          v.currentTime = 0;
+        });
+      });
+      Promise.all(plays)
+        .then(() => setBlocked(false))
+        .catch(() => {}); // still refused: keep waiting for the next gesture
     };
     const events = ["pointerdown", "touchend", "keydown", "click"] as const;
     events.forEach((e) => window.addEventListener(e, unlock, { passive: true }));
     return () => events.forEach((e) => window.removeEventListener(e, unlock));
   }, [blocked]);
 
-  const finishRef = useRef<() => void>(() => {});
-  const startedRef = useRef<() => void>(() => {});
-  const failRef = useRef<(refused: boolean) => void>(() => {});
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const handoffRef = useRef<(slot: number) => void>(() => {});
+  const endRef = useRef<(slot: number) => void>(() => {});
+  const startedRef = useRef<(slot: number) => void>(() => {});
+  const failRef = useRef<(slot: number, refused: boolean) => void>(() => {});
+  const sourceLetters = walks.filter(Boolean).map((w) => w!.letter);
 
   return (
     <section aria-label="Ghanamaxxing" className="gm-hero">
@@ -254,7 +271,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ref={(el) => {
                   letterRefs.current[i] = el;
                 }}
-                className={`gm-cell${walk?.letter === i ? " gm-cell-source" : ""}${bumped === i ? " gm-wobble" : ""}`}
+                className={`gm-cell${sourceLetters.includes(i) ? " gm-cell-source" : ""}${bumped === i ? " gm-wobble" : ""}`}
                 style={{ "--a": ASPECT[ch] } as React.CSSProperties}
                 onAnimationEnd={() => setBumped(null)}
               >
@@ -267,51 +284,56 @@ export function Hero({ children }: { children?: React.ReactNode }) {
           ))}
         </div>
 
-        {/* One video element, reused for every character (see the unlock effect above). */}
-        <div
-          className="gm-walk-clip"
-          style={walk ? { left: walk.clip.left, width: walk.clip.width } : { left: 0, width: 0 }}
-        >
-          <video
-            ref={(el) => {
-              videoRef.current = el;
-              if (el && !el.dataset.ready) {
-                // Safari only allows autoplay for video that is muted before it loads.
-                el.dataset.ready = "1";
-                el.muted = true;
-                el.defaultMuted = true;
-                el.setAttribute("muted", "");
-                el.setAttribute("playsinline", "");
+        {walks.map((walk, slot) => (
+          <div
+            key={slot}
+            className="gm-walk-clip"
+            style={walk ? { left: walk.clip.left, width: walk.clip.width } : { left: 0, width: 0 }}
+          >
+            <video
+              ref={(el) => {
+                videoRefs.current[slot] = el;
+                if (el && !el.dataset.ready) {
+                  // Safari only allows autoplay for video that is muted before it loads.
+                  el.dataset.ready = "1";
+                  el.muted = true;
+                  el.defaultMuted = true;
+                  el.setAttribute("muted", "");
+                  el.setAttribute("playsinline", "");
+                }
+              }}
+              className="gm-walker"
+              style={
+                walk
+                  ? {
+                      left: walk.box.left - walk.clip.left,
+                      bottom: walk.box.bottom,
+                      width: walk.box.size,
+                      height: walk.box.size,
+                      transform: walk.mirror ? "scaleX(-1)" : undefined,
+                    }
+                  : { width: 1, height: 1 }
               }
-            }}
-            className="gm-walker"
-            style={
-              walk
-                ? {
-                    left: walk.box.left - walk.clip.left,
-                    bottom: walk.box.bottom,
-                    width: walk.box.size,
-                    height: walk.box.size,
-                    transform: walk.mirror ? "scaleX(-1)" : undefined,
-                  }
-                : { width: 1, height: 1 }
-            }
-            muted
-            playsInline
-            preload="auto"
-            onTimeUpdate={(e) => {
-              const at = walk?.character.bumpAt;
-              if (walk && at && bumped === null && Math.abs(e.currentTarget.currentTime - at) < 0.15) setBumped(walk.letter);
-            }}
-            onPlaying={(e) => {
-              if (!walk) return;
-              e.currentTarget.setAttribute("data-playing", "");
-              startedRef.current();
-            }}
-            onEnded={() => walk && finishRef.current()}
-            onError={() => walk && failRef.current(false)}
-          />
-        </div>
+              muted
+              playsInline
+              preload="auto"
+              onTimeUpdate={(e) => {
+                if (!walk) return;
+                const t = e.currentTarget.currentTime;
+                const at = walk.character.bumpAt;
+                if (at && bumped === null && Math.abs(t - at) < 0.15) setBumped(walk.letter);
+                if (t >= HERO_TIMING.handoffAt) handoffRef.current(slot);
+              }}
+              onPlaying={(e) => {
+                if (!walk) return;
+                e.currentTarget.setAttribute("data-playing", "");
+                startedRef.current(slot);
+              }}
+              onEnded={() => walk && endRef.current(slot)}
+              onError={() => walk && failRef.current(slot, false)}
+            />
+          </div>
+        ))}
 
         {(reducedMotion || blocked) && <ReducedMotionStill />}
       </div>
@@ -325,10 +347,6 @@ function ReducedMotionStill() {
   const c = HERO_CHARACTERS[0];
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/hero/characters/${c.id}.webp`}
-      alt={c.label}
-      className="gm-still"
-    />
+    <img src={`/hero/characters/${c.id}.webp`} alt={c.label} className="gm-still" />
   );
 }

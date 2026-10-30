@@ -29,8 +29,10 @@ export const HERO_CHARACTERS: HeroCharacter[] = [
 ];
 
 export const HERO_TIMING = {
-  /** Pause between one character leaving and the next appearing. */
-  gapMs: [1200, 2200] as const,
+  /** Seconds into a clip (as the character turns to walk back in) when the next one starts walking out. */
+  handoffAt: 3.6,
+  /** Pause after all five have appeared, before the cycle starts again. */
+  cycleRestMs: [1500, 2000] as const,
   firstDelayMs: 700,
   /** Character height as a fraction of the letter's height. */
   characterHeight: 0.6,
