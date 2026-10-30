@@ -6,7 +6,7 @@ import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
 import { AyekooButton } from "@/components/ayekoo-button";
 import { getLaunchType } from "@/config/launch-types";
-import { getLaunchBySlug } from "@/lib/launches";
+import { getApprovedLaunches, getLaunchBySlug } from "@/lib/launches";
 import type { MakerSocials } from "@/lib/types";
 
 export const revalidate = 60;
@@ -38,6 +38,10 @@ const SOCIAL_LABELS: Record<keyof MakerSocials, string> = {
 export default async function LaunchPage({ params }: Props) {
   const launch = await getLaunchBySlug((await params).slug);
   if (!launch) notFound();
+  // A handful of others to suggest after someone says ayekoo (three are picked at random in the browser).
+  const others = (await getApprovedLaunches())
+    .filter((l) => l.id !== launch.id)
+    .map(({ slug, name, logo_url, type }) => ({ slug, name, logo_url, type }));
 
   const type = getLaunchType(launch.type);
   const socials = Object.entries(launch.maker_socials ?? {}).filter(([, url]) => url) as [keyof MakerSocials, string][];
@@ -70,7 +74,7 @@ export default async function LaunchPage({ params }: Props) {
           <a href={launch.url} target="_blank" rel="noopener" className="btn !px-6 !py-3 text-lg">
             Visit {launch.name}
           </a>
-          <AyekooButton launchId={launch.id} initialCount={launch.ayekoo_count} />
+          <AyekooButton launchId={launch.id} initialCount={launch.ayekoo_count} name={launch.name} slug={launch.slug} others={others} />
         </div>
 
         {launch.image_url && (

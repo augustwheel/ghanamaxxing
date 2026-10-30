@@ -275,3 +275,104 @@ body {
   65% { transform: scale(0.9) rotate(8deg); }
   100% { transform: scale(1) rotate(0); }
 }
+
+/* ─── Ayekoo: fill with liquid gold, then burst ─────────────────────────── */
+.gm-ayekoo {
+  --gold-1: #ffe9a3;
+  --gold-2: #f5c542;
+  --gold-3: #b8860b;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 999px;
+  padding: 0.75rem 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--color-chalk);
+  border: 1.5px solid var(--color-line);
+  background: var(--color-coal);
+  transition: transform 0.15s ease, color 0.25s ease, border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.gm-ayekoo:hover {
+  border-color: var(--gold-3);
+}
+.gm-ayekoo:active {
+  transform: scale(0.96);
+}
+.gm-ayekoo-sub {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-muted);
+  transition: color 0.25s ease;
+}
+/* The liquid: a glossy gold layer that rises from the bottom with a wavy top edge. */
+.gm-ayekoo-fill {
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  background:
+    radial-gradient(120% 70% at 30% 10%, rgb(255 255 255 / 0.55), transparent 50%),
+    linear-gradient(180deg, var(--gold-1), var(--gold-2) 45%, var(--gold-3));
+  transform: translateY(101%);
+  transition: transform 0.35s ease;
+}
+.gm-ayekoo-fill::before {
+  content: "";
+  position: absolute;
+  left: -50%;
+  top: -10px;
+  width: 200%;
+  height: 20px;
+  background: radial-gradient(12px 10px at 12px 10px, var(--gold-1) 98%, transparent) 0 0 / 24px 20px repeat-x;
+  animation: gm-wave 0.6s linear infinite;
+}
+.gm-ayekoo[data-phase="filling"] {
+  animation: gm-pressure 0.7s ease-in;
+}
+.gm-ayekoo[data-phase="filling"] .gm-ayekoo-fill {
+  transition: transform 0.7s cubic-bezier(0.45, 0, 0.7, 1);
+  transform: translateY(0);
+}
+.gm-ayekoo[data-phase="burst"] {
+  animation: gm-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.gm-ayekoo[data-given] .gm-ayekoo-fill {
+  transform: translateY(0);
+}
+.gm-ayekoo[data-given] .gm-ayekoo-fill::before {
+  display: none;
+}
+.gm-ayekoo[data-given] {
+  color: #2b1d00;
+  border-color: var(--gold-3);
+  box-shadow: 0 8px 26px -8px rgb(245 197 66 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.5);
+}
+.gm-ayekoo[data-given] .gm-ayekoo-sub {
+  color: rgb(43 29 0 / 0.7);
+}
+@keyframes gm-wave {
+  to { transform: translateX(24px); }
+}
+@keyframes gm-pressure {
+  0%, 100% { transform: none; }
+  20% { transform: rotate(-1.5deg) scale(1.01); }
+  40% { transform: rotate(1.5deg) scale(1.02); }
+  60% { transform: rotate(-2deg) scale(1.03); }
+  80% { transform: rotate(2deg) scale(1.05); }
+}
+@keyframes gm-pop {
+  0% { transform: scale(1.08); }
+  45% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+.gm-rise {
+  animation: gm-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes gm-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
