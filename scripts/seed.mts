@@ -27,7 +27,8 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const supabase = createClient(url, key, { auth: { persistSession: false } });
+// Tables live in the ghanamaxxing schema (see src/lib/supabase/env.ts).
+const supabase = createClient(url, key, { db: { schema: "ghanamaxxing" }, auth: { persistSession: false } });
 
 const printProblems = (title: string, items: RowProblem[]) => {
   if (!items.length) return;

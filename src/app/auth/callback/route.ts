@@ -10,7 +10,11 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${safeNext}`);
+    if (!error) {
+      // Profiles are created on first sign-in (not by a trigger, since the project is shared).
+      await supabase.rpc("ensure_profile");
+      return NextResponse.redirect(`${origin}${safeNext}`);
+    }
   }
   return NextResponse.redirect(`${origin}/signin?error=1`);
 }

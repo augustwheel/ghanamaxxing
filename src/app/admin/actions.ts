@@ -90,9 +90,9 @@ async function uploadImage(supabase: Supabase, file: FormDataEntryValue | null, 
   if (file.size > 2_097_152) throw new Error(`${kind} must be under 2 MB`);
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
   const path = `seed/${slug}/${kind}-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from("launch-media").upload(path, file, { contentType: file.type });
+  const { error } = await supabase.storage.from("ghanamaxxing-media").upload(path, file, { contentType: file.type });
   if (error) throw new Error(`Couldn't upload ${kind}: ${error.message}`);
-  return supabase.storage.from("launch-media").getPublicUrl(path).data.publicUrl;
+  return supabase.storage.from("ghanamaxxing-media").getPublicUrl(path).data.publicUrl;
 }
 
 export async function addLaunch(_prev: AddState, formData: FormData): Promise<AddState> {
