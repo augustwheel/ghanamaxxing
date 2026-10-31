@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COLLECTIONS } from "@/config/collections";
 import { SITE } from "@/config/site";
 
 const external = "underline decoration-line underline-offset-4 hover:text-chalk hover:decoration-chalk";
@@ -6,6 +7,15 @@ const external = "underline decoration-line underline-offset-4 hover:text-chalk 
 export function SiteFooter() {
   return (
     <footer className="mt-24 bg-coal">
+      <nav aria-label="Browse by topic" className="mx-auto max-w-6xl px-4 pt-10 text-sm text-muted">
+        <ul className="flex flex-wrap gap-x-5 gap-y-2">
+          {COLLECTIONS.map((c) => (
+            <li key={c.slug}>
+              <Link href={`/${c.slug}`} className="hover:text-chalk">{c.title}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:flex-row sm:items-end">
         <div>
           <p className="font-display text-base text-chalk">Made for the people building Ghana.</p>

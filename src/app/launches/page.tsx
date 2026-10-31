@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LaunchList } from "@/components/launch-list";
 import { TypeFilter } from "@/components/type-filter";
+import { COLLECTIONS, collectionForType } from "@/config/collections";
 import { getLaunchType } from "@/config/launch-types";
 import { BOARD_TABS, newestLaunches, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
@@ -13,12 +14,14 @@ type Props = { searchParams: Promise<{ type?: string | string[]; board?: string 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
   const type = parseTypeParam(sp.type);
-  const tab = BOARD_TABS.find((t) => t.id === parseBoardParam(sp.board))!;
-  const title = type ? `${tab.label}: ${getLaunchType(type).label}` : tab.label;
+  const title = type ? `${getLaunchType(type).label} from Ghana` : "Explore apps and startups from Ghana";
+  // Every view of this page points search engines at one address: the type's own page when it has one.
+  const collection = type && collectionForType(type);
+  const canonical = collection ? `/${collection.slug}` : `/launches${type ? `?type=${type}` : ""}`;
   return {
     title,
     description: `${title} on Ghanamaxxing: startups, apps, side projects, AI tools and games from Ghanaian builders.`,
-    alternates: { canonical: `/launches?board=${tab.id}${type ? `&type=${type}` : ""}` },
+    alternates: { canonical },
   };
 }
 
@@ -70,6 +73,17 @@ export default async function LaunchesPage({ searchParams }: Props) {
           <Link href="/submit" className="btn mt-6">Add it</Link>
         </div>
       )}
+
+      <nav aria-label="Browse by topic" className="mt-12">
+        <h2 className="font-display text-2xl font-semibold">Browse by topic</h2>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {COLLECTIONS.map((c) => (
+            <li key={c.slug}>
+              <Link href={`/${c.slug}`} className="btn-quiet !py-2 text-sm">{c.title}</Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }

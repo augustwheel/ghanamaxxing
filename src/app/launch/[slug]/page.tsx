@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/json-ld";
 import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
 import { AyekooButton } from "@/components/ayekoo-button";
+import { collectionForType } from "@/config/collections";
 import { getLaunchType } from "@/config/launch-types";
+import { SITE } from "@/config/site";
 import { isOptimizable } from "@/lib/format";
 import { getApprovedLaunches, getLaunchBySlug } from "@/lib/launches";
 import type { MakerSocials } from "@/lib/types";
@@ -45,17 +48,43 @@ export default async function LaunchPage({ params }: Props) {
     .map(({ slug, name, logo_url, type }) => ({ slug, name, logo_url, type }));
 
   const type = getLaunchType(launch.type);
+  const collection = collectionForType(launch.type);
+  const moreHref = collection ? `/${collection.slug}` : `/launches?type=${type.value}`;
   const socials = Object.entries(launch.maker_socials ?? {}).filter(([, url]) => url) as [keyof MakerSocials, string][];
 
   return (
     <article className="relative">
+      <JsonLd
+        data={{
+          "@type": "WebPage",
+          name: `${launch.name}: ${launch.tagline}`,
+          url: `${SITE.url}/launch/${launch.slug}`,
+          about: {
+            // Games are the only type where the listing is reliably the thing itself; the rest are usually a company.
+            "@type": launch.type === "games" ? "CreativeWork" : "Organization",
+            name: launch.name,
+            description: launch.description ?? launch.tagline,
+            url: launch.url,
+            ...(launch.type === "games"
+              ? { genre: "Game" }
+              : { address: { "@type": "PostalAddress", addressCountry: "GH", ...(launch.city ? { addressLocality: launch.city } : {}) } }),
+          },
+          breadcrumb: {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: collection?.title ?? "Explore", item: `${SITE.url}${moreHref}` },
+              { "@type": "ListItem", position: 2, name: launch.name, item: `${SITE.url}/launch/${launch.slug}` },
+            ],
+          },
+        }}
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-35"
         style={{ background: `radial-gradient(50% 60% at 50% 0%, ${type.color}, transparent 70%)` }}
       />
       <div className="relative mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
-        <Link href={`/launches?type=${type.value}`} className="font-display font-semibold text-muted hover:text-chalk">
+        <Link href={moreHref} className="font-display font-semibold text-muted hover:text-chalk">
           More in {type.label}
         </Link>
 

@@ -26,9 +26,10 @@ export default function AboutPage() {
           or <Link href="/launches?board=shuffle" className={link}>shuffle</Link> for something you haven&apos;t seen.
         </p>
         <p>
-          We added the first listings ourselves so you can explore from day one. They&apos;re labelled{" "}
-          <em>Added by Ghanamaxxing</em>. If you know a detail we got wrong or left out, use{" "}
-          <em>Suggest an edit</em> on any listing. If it&apos;s yours, you can claim it, or ask us to take it down.
+          We added the first listings ourselves so you can explore from day one. If you know a detail we got wrong or
+          left out, use <em>Suggest an edit</em> on any listing. If you make something listed here, you can{" "}
+          <Link href="/claim" className={link}>claim it</Link> to update the details, or{" "}
+          <Link href="/remove" className={link}>ask us to remove it</Link>.
         </p>
         <p>
           Building something? <Link href="/submit" className={link}>Add it</Link>.

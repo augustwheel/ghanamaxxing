@@ -1,12 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Hero } from "@/components/hero/hero";
+import { JsonLd } from "@/components/json-ld";
 import { RankingsPreview } from "@/components/home/rankings-preview";
 import { SpotlightCard } from "@/components/home/spotlight-card";
 import { LaunchMap } from "@/components/map/launch-map";
 import { BOARD_TABS, boardPreviews, spotlightOfTheWeek, weekStart } from "@/lib/boards";
 import { getApprovedLaunches } from "@/lib/launches";
+import { SITE } from "@/config/site";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const link = "underline decoration-2 decoration-line underline-offset-[0.18em] transition-colors hover:decoration-chalk";
 
@@ -19,6 +24,15 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@type": "WebSite",
+          name: SITE.name,
+          url: SITE.url,
+          description: SITE.description,
+          publisher: { "@type": "Organization", name: "August Engine", url: "https://www.augustengine.com" },
+        }}
+      />
       <Hero />
 
       <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24">

@@ -17,7 +17,8 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - **Honest copy.** Don't overpromise ("everything Ghana is building" was rejected). The home caption is the owner's
   own first-person voice. Describe what it is; don't describe what it isn't. Plain words: "apps and startups"
   (not "launches"/"entries"/"builds") in visitor-facing copy.
-- **Listings we added** say so and offer "Claim it / ask us to take it down".
+- **Listings we added** show one quiet line: "Is this yours? Claim it to update the details." The owner dropped the
+  longer "we added this / take it down" caption because it read as unsure. Removal stays in the footer and on About.
 - **Keep listings simple:** logo, name, one-liner, type, city, link. Don't nag for missing details.
 
 ## Design system
@@ -46,6 +47,9 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/lib/boards.ts`: Newest, Shuffle, Spotlight of the week. `src/lib/launches.ts`: public reads.
 - `src/lib/supabase/*`: clients, all pinned to the `ghanamaxxing` schema (`DB_SCHEMA`); `service.ts` is server-only.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
+- `src/config/collections.ts` + `src/app/[collection]/page.tsx`: pages for searches like "games made in Ghana". Add a
+  page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best".
+  Structured data goes through `src/components/json-ld.tsx`.
 
 ## House rules
 
@@ -76,4 +80,4 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - The About page says "no rankings or leaderboards", which describes what the site isn't. Left for the owner's voice.
 - `hero.tsx` was reformatted mid-session; formatting is inconsistent with the rest (no Prettier config in repo).
 - Safari HEVC playback was only tested via a Chrome simulation of Safari's autoplay rules, not in real Safari.
-- 3 seed launches have no logo (Kowri, Redbird Health, Asoriba) and show initials.
+- Redbird Health has no logo file to use and shows initials. Listings with no city have no map pin, so the map legend leaves them out.

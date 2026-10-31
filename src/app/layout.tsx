@@ -11,7 +11,7 @@ const display = Fredoka({ variable: "--font-display-face", weight: ["500", "600"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: `${SITE.name}: discover what Ghana is building`, template: `%s · ${SITE.name}` },
+  title: { default: `${SITE.name}: discover apps and startups made in Ghana`, template: `%s · ${SITE.name}` },
   description: SITE.description,
   openGraph: { siteName: SITE.name, type: "website", locale: "en_GH" },
   twitter: { card: "summary_large_image" },
