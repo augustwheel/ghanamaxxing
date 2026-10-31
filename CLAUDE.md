@@ -49,6 +49,7 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/lib/supabase/*`: clients, all pinned to the `ghanamaxxing` schema (`DB_SCHEMA`); `service.ts` is server-only.
 - `src/components/footer-arch.tsx`: the footer's picture, the Independence Arch in dense ASCII on black (`scripts/hero/arch_ascii.py`, cut out of a CC BY photo credited in the footer) with clouds drifting above it. One colour, crisp silhouette, nothing stray, and the star is negative space. Earlier versions were rejected: photo grain and line art looked messy, and a white footer was too jarring on a dark site. Only runs near the screen.
 - `src/lib/notify.ts`: form alerts. Posts to the n8n workflow (`n8n/build_alerts_workflow.py`), which emails August through Gmail.
+- New listing logos can go in the Supabase bucket `ghanamaxxing-media` (`logos/<slug>.webp`), which needs no deploy; files in `public/logos` do.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
 - `src/config/collections.ts` + `src/app/[collection]/page.tsx`: pages for searches like "games made in Ghana". Add a
   page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best". No city gets linked from the site, because it's all of Ghana: the Accra page is search-only.
@@ -83,4 +84,4 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - The About page says "no rankings or leaderboards", which describes what the site isn't. Left for the owner's voice.
 - `hero.tsx` was reformatted mid-session; formatting is inconsistent with the rest (no Prettier config in repo).
 - Safari HEVC playback was only tested via a Chrome simulation of Safari's autoplay rules, not in real Safari.
-- Redbird Health has no logo file to use and shows initials. Listings with no city have no map pin, so the map legend leaves them out.
+- Listings with no city have no map pin, so the map legend leaves them out.
