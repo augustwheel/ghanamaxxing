@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LaunchCount } from "@/components/launch-count";
 import { LaunchList } from "@/components/launch-list";
 import { TypeFilter } from "@/components/type-filter";
 import { TOPICS, collectionForType } from "@/config/collections";
-import { getLaunchType } from "@/config/launch-types";
+import { getLaunchType, LAUNCH_TYPES, type LaunchType } from "@/config/launch-types";
 import { BOARD_TABS, newestLaunches, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
 
@@ -30,7 +31,10 @@ export default async function LaunchesPage({ searchParams }: Props) {
   const type = parseTypeParam(sp.type);
   const tabId = parseBoardParam(sp.board);
   const tab = BOARD_TABS.find((t) => t.id === tabId)!;
-  const launches = await getApprovedLaunches({ type });
+  const allLaunches = await getApprovedLaunches({ limit: 1000 });
+  const counts = Object.fromEntries(LAUNCH_TYPES.map((t) => [t.value, 0])) as Record<LaunchType, number>;
+  for (const launch of allLaunches) counts[launch.type]++;
+  const launches = type ? allLaunches.filter((launch) => launch.type === type) : allLaunches;
   const list = newestLaunches(launches);
 
   return (
@@ -60,10 +64,13 @@ export default async function LaunchesPage({ searchParams }: Props) {
         })}
       </nav>
       <div className="mt-4">
-        <TypeFilter active={type} basePath="/launches" params={{ board: tabId }} />
+        <TypeFilter active={type} basePath="/launches" params={{ board: tabId }} counts={counts} total={allLaunches.length} />
       </div>
 
-      <p className="mt-6 px-2 text-sm text-muted">{tab.blurb}</p>
+      <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-2 pb-3">
+        <LaunchCount count={list.length} />
+        {tab.blurb && <p className="text-sm text-muted">{tab.blurb}</p>}
+      </div>
       {list.length ? (
         <LaunchList launches={list} shuffle={tabId === "shuffle"} />
       ) : (

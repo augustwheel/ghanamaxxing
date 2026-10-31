@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FooterArch } from "@/components/footer-arch";
+import { NewsletterForm } from "@/components/newsletter-form";
 import { TOPICS } from "@/config/collections";
 import { SITE } from "@/config/site";
 
@@ -10,6 +11,18 @@ const list = "mt-4 space-y-3 text-[15px]";
 export function SiteFooter() {
   return (
     <footer className="gm-footer mt-24">
+      <section id="newsletter" aria-labelledby="newsletter-heading" className="mx-auto grid max-w-6xl scroll-mt-16 items-end gap-8 border-b border-line/70 px-4 py-14 md:grid-cols-2 md:gap-12 md:py-16">
+        <div>
+          <p className="font-display text-sm font-semibold text-muted">Stay in the loop</p>
+          <h2 id="newsletter-heading" className="mt-3 max-w-lg font-display text-3xl font-semibold leading-tight tracking-tight text-chalk sm:text-4xl">
+            Good things from Ghana, in your inbox.
+          </h2>
+          <p className="mt-3 max-w-lg text-muted">
+            Join the list for occasional notes about spotlighted apps, new apps and what&apos;s happening with Ghanamaxxing.
+          </p>
+        </div>
+        <NewsletterForm />
+      </section>
       <FooterArch
         links={
           <>

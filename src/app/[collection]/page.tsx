@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
+import { LaunchCount } from "@/components/launch-count";
 import { LaunchList } from "@/components/launch-list";
 import { COLLECTIONS, TOPICS, findCollection, inCollection } from "@/config/collections";
 import { SITE } from "@/config/site";
@@ -25,7 +26,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: collection.title,
     description: collection.description,
     alternates: { canonical: `/${collection.slug}` },
-    openGraph: { title: collection.title, description: collection.description },
+    openGraph: {
+      title: collection.title,
+      description: collection.description,
+      siteName: SITE.name,
+      type: "website",
+      locale: "en_GH",
+      images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "Ghanamaxxing" }],
+    },
+    twitter: { card: "summary_large_image", images: ["/opengraph-image.png"] },
   };
 }
 
@@ -69,6 +78,9 @@ export default async function CollectionPage({ params }: Props) {
       <h1 className="mt-6 font-display text-5xl leading-[0.95] font-bold tracking-tight text-balance sm:text-6xl">{collection.title}</h1>
       <p className="mt-4 max-w-xl text-lg text-muted text-pretty">{collection.intro}</p>
 
+      <div className="mt-8 border-b border-line px-2 pb-3">
+        <LaunchCount count={launches.length} />
+      </div>
       <LaunchList launches={launches} />
 
       <section className="mt-12 rounded-[2rem] bg-surface px-6 py-8">

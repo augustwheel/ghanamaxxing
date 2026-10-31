@@ -6,7 +6,7 @@ import type { Launch } from "@/lib/types";
 // each other: no "most popular", and ayekoo counts never decide order.
 
 export const BOARD_TABS = [
-  { id: "newest", label: "Newest", blurb: "Just added" },
+  { id: "newest", label: "Newest", blurb: "" },
   { id: "shuffle", label: "Shuffle", blurb: "A different mix every time you look, so everyone gets seen" },
 ] as const;
 

@@ -39,8 +39,8 @@ export function RankingsPreview({ tabs, all }: { tabs: Tab[]; all: Launch[] }) {
           </button>
         ))}
       </div>
-      <p className="mt-4 px-1 text-sm text-muted">{tab.blurb}</p>
-      <ul role="tabpanel" className="mt-3 flex-1 space-y-1">
+      {tab.blurb && <p className="mt-4 px-1 text-sm text-muted">{tab.blurb}</p>}
+      <ul role="tabpanel" className={`${tab.blurb ? "mt-3" : "mt-4"} flex-1 space-y-1`}>
         {launches.map((l) => (
           <li key={l.id}>
             <Link href={`/launch/${l.slug}`} className="group flex items-center gap-4 rounded-2xl px-2 py-3 hover:bg-surface-2">

@@ -56,8 +56,10 @@ Migrations are run **by hand in the Supabase SQL Editor**, in order:
 
 1. `supabase/migrations/20261029000001_init.sql`: schema, tables, triggers, row-level security, storage bucket
 2. `supabase/migrations/20261029000002_suggestions.sql`: Suggest an edit
-3. `supabase/migrations/20261030000003_ayekoo.sql`: renames stars to ayekoos (all four are applied in production)
+3. `supabase/migrations/20261030000003_ayekoo.sql`: renames stars to ayekoos
 4. `supabase/migrations/20261030000004_submissions.sql`: private `launch_submissions` for Add yours
+5. `supabase/migrations/20261031000005_claim_requests.sql`: claim requests without sign-in
+6. `supabase/migrations/20261031000006_newsletter.sql`: private newsletter subscribers and delivery records
 
 `ghanamaxxing` must be listed in **Project Settings → Data API → Exposed schemas**, or the site can't reach it.
 
@@ -69,6 +71,16 @@ Migrations are run **by hand in the Supabase SQL Editor**, in order:
 | `suggestions`, `removal_requests` | Visitor reports, private until reviewed. |
 | `spotlights` | Spotlight of the week, keyed by Monday (not written by the app yet; the pick is computed). |
 | `profiles`, `claims`, `hubs` | Sign-in profiles (`is_admin`), claim requests and a map hubs layer, for later. |
+| `newsletter_subscribers`, `newsletter_deliveries` | Email signups and a table reserved for future delivery records. Private to the service role. |
+
+## Email signup list
+
+The footer collects addresses from visitors who want occasional notes about spotlighted apps, new apps and site updates. There is no sending schedule yet and the site does not send an email on signup. Addresses are stored with `status = 'pending'` and a consent timestamp in the private `ghanamaxxing.newsletter_subscribers` table. A repeat signup does not create another row. Visitors can request removal through the Contact page.
+
+1. Run `supabase/migrations/20261031000006_newsletter.sql` in the SQL Editor after the earlier migrations.
+2. Deploy the site when ready. No email webhook or other email service is needed to start collecting addresses.
+
+Before sending anything later, add email ownership confirmation and an unsubscribe link. The current `pending` rows are unverified signups.
 
 **Approving submissions** (until admin sign-in exists): Table Editor → schema `ghanamaxxing` → `launches` → set
 `status` from `pending` to `approved`. The submitter's details are in `launch_submissions`.
