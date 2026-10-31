@@ -86,6 +86,81 @@ body {
   border-color: var(--color-muted);
 }
 
+/* ─── Footer: the Independence Arch in dense ASCII, on black ───────────── */
+.gm-footer {
+  background: #09090a;
+  color: var(--color-muted);
+}
+.gm-footer-ink,
+.gm-footer a:hover {
+  color: var(--color-chalk);
+}
+/* Phones: links, then the arch full width under its own strip of sky, then the credits. */
+.gm-footer-layout {
+  display: grid;
+  grid-template-areas: "links" "arch" "credits";
+  max-width: 72rem;
+  margin: 0 auto;
+}
+.gm-footer-links {
+  grid-area: links;
+  padding: 3.5rem 1rem 1rem;
+}
+.gm-footer-arch {
+  grid-area: arch;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: 7.5rem;
+  overflow: hidden;
+}
+/* Clouds drift in the sky above the arch, and melt away at the sides. */
+.gm-footer-sky {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 7.5rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.gm-footer-picture {
+  position: relative;
+  width: 76%;
+  margin: 0 auto;
+}
+.gm-footer-picture canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.19; /* holds its space until the drawing loads, so the page doesn't jump */
+}
+.gm-footer-credits {
+  grid-area: credits;
+  padding: 1.25rem 1rem 1.5rem;
+}
+/* Wider: the links down the left, and the arch standing at the right. */
+@media (min-width: 900px) {
+  .gm-footer-layout {
+    grid-template-areas: "links arch" "credits arch";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    column-gap: 2rem;
+    padding: 0 1rem 2rem;
+  }
+  .gm-footer-links {
+    padding: 4.5rem 0 3rem;
+  }
+  .gm-footer-arch {
+    padding-top: 8rem;
+  }
+  .gm-footer-picture {
+    width: 86%;
+  }
+  .gm-footer-credits {
+    padding: 0;
+  }
+}
+
 /* ─── Hero: the word fills the first screen ───────────────────────────── */
 .gm-hero {
   position: relative;

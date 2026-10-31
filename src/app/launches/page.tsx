@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LaunchList } from "@/components/launch-list";
 import { TypeFilter } from "@/components/type-filter";
-import { COLLECTIONS, collectionForType } from "@/config/collections";
+import { TOPICS, collectionForType } from "@/config/collections";
 import { getLaunchType } from "@/config/launch-types";
 import { BOARD_TABS, newestLaunches, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
@@ -77,7 +77,7 @@ export default async function LaunchesPage({ searchParams }: Props) {
       <nav aria-label="Browse by topic" className="mt-12">
         <h2 className="font-display text-2xl font-semibold">Browse by topic</h2>
         <ul className="mt-4 flex flex-wrap gap-2">
-          {COLLECTIONS.map((c) => (
+          {TOPICS.map((c) => (
             <li key={c.slug}>
               <Link href={`/${c.slug}`} className="btn-quiet !py-2 text-sm">{c.title}</Link>
             </li>

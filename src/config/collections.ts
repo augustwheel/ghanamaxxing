@@ -13,6 +13,8 @@ export type Collection = {
   type?: LaunchType;
   /** Keeps listings whose place is in this city, e.g. "Accra" also takes Osu and East Legon. */
   city?: string;
+  /** Findable through search and the sitemap, but not linked from the site. It's Ghanamaxxing: no city gets singled out. */
+  unlinked?: boolean;
 };
 
 export const COLLECTIONS: Collection[] = [
@@ -56,15 +58,11 @@ export const COLLECTIONS: Collection[] = [
     description: "Apps and startups based in Accra, Ghana, from Osu and East Legon to Labone and Nima.",
     intro: "Apps and startups based in Accra, from Osu and East Legon to Labone and Nima. See them all on the map too.",
     city: "Accra",
-  },
-  {
-    slug: "startups-in-kumasi",
-    title: "Startups in Kumasi",
-    description: "Apps and startups based in Kumasi, Ghana.",
-    intro: "Apps and startups based in Kumasi. Know one we're missing? Add it, and help put Kumasi on the map.",
-    city: "Kumasi",
+    unlinked: true,
   },
 ];
+
+export const TOPICS = COLLECTIONS.filter((c) => !c.unlinked);
 
 export const findCollection = (slug: string) => COLLECTIONS.find((c) => c.slug === slug);
 export const collectionForType = (type: LaunchType) => COLLECTIONS.find((c) => c.type === type);

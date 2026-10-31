@@ -47,10 +47,11 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/app/submit/actions.ts`: Add yours, inserts a `pending` launch plus a private `launch_submissions` row.
 - `src/lib/boards.ts`: Newest, Shuffle, Spotlight of the week. `src/lib/launches.ts`: public reads.
 - `src/lib/supabase/*`: clients, all pinned to the `ghanamaxxing` schema (`DB_SCHEMA`); `service.ts` is server-only.
+- `src/components/footer-arch.tsx`: the footer's picture, the Independence Arch in dense ASCII on black (`scripts/hero/arch_ascii.py`, cut out of a CC BY photo credited in the footer) with clouds drifting above it. One colour, crisp silhouette, nothing stray, and the star is negative space. Earlier versions were rejected: photo grain and line art looked messy, and a white footer was too jarring on a dark site. Only runs near the screen.
 - `src/lib/notify.ts`: form alerts. Posts to the n8n workflow (`n8n/build_alerts_workflow.py`), which emails August through Gmail.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
 - `src/config/collections.ts` + `src/app/[collection]/page.tsx`: pages for searches like "games made in Ghana". Add a
-  page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best".
+  page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best". No city gets linked from the site, because it's all of Ghana: the Accra page is search-only.
   Structured data goes through `src/components/json-ld.tsx`.
 
 ## House rules

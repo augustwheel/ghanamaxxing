@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
 import { LaunchList } from "@/components/launch-list";
-import { COLLECTIONS, findCollection, inCollection } from "@/config/collections";
+import { COLLECTIONS, TOPICS, findCollection, inCollection } from "@/config/collections";
 import { SITE } from "@/config/site";
 import { newestLaunches } from "@/lib/boards";
 import { getApprovedLaunches } from "@/lib/launches";
@@ -87,7 +87,7 @@ function CollectionLinks({ current }: { current: string }) {
     <nav aria-label="More from Ghana" className="mt-12">
       <h2 className="font-display text-2xl font-semibold">More from Ghana</h2>
       <ul className="mt-4 flex flex-wrap gap-2">
-        {COLLECTIONS.filter((c) => c.slug !== current).map((c) => (
+        {TOPICS.filter((c) => c.slug !== current).map((c) => (
           <li key={c.slug}>
             <Link href={`/${c.slug}`} className="btn-quiet !py-2 text-sm">{c.title}</Link>
           </li>
