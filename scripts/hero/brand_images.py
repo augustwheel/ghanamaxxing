@@ -10,7 +10,6 @@ from PIL import Image, ImageDraw, ImageFilter
 LETTERS = "public/hero/letters"
 APP = "src/app"
 ASPECT = dict(G=0.8878, H=0.9122, A=0.8422, N=0.9422, M=1.1256, X=0.8533, I=0.5767)  # as in hero.tsx
-STAR = [(50, 5), (61, 37), (95, 37), (68, 57), (78, 90), (50, 70), (22, 90), (32, 57), (5, 37), (39, 37)]
 
 
 def backdrop(w, h):
@@ -22,19 +21,6 @@ def backdrop(w, h):
     out = base * (1 - k) + np.array([66, 66, 75], np.float32) * k
     return Image.fromarray(out.astype(np.uint8)).convert("RGBA")
 
-
-def draw_star(img, size):
-    s = 4
-    pts = [(x / 100 * size * s, y / 100 * size * s) for x, y in STAR]
-    mask = Image.new("L", (size * s, size * s), 0)
-    d = ImageDraw.Draw(mask)
-    d.polygon(pts, fill=255)
-    d.line(pts + pts[:1], fill=255, width=int(size * s * 0.03), joint="curve")
-    r = size * s * 0.015
-    for x, y in pts:
-        d.ellipse([x - r, y - r, x + r, y + r], fill=255)
-    mask = mask.resize((size, size), Image.LANCZOS)
-    img.paste((10, 10, 11, 255), ((img.width - size) // 2, (img.height - size) // 2), mask)
 
 
 def place(img, letter, x, y):
@@ -50,7 +36,6 @@ def place(img, letter, x, y):
 def share_card():
     W, H = 1200, 630
     card = backdrop(W, H)
-    draw_star(card, 600)
     lh = (W - 48) / sum(ASPECT[c] for c in "MAXXING")
     h = lh * 1.22
     top = (H - 2 * h) / 2

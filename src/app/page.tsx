@@ -35,6 +35,7 @@ export default async function HomePage() {
       />
       <Hero />
 
+      <div className="gm-adinkra">
       <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24">
         <p className="max-w-4xl font-display text-[clamp(1.75rem,5vw,3.25rem)] leading-[1.12] font-semibold tracking-tight text-balance">
           So many wonderful apps and startups are coming out of Ghana, I thought I&apos;d build something to help people{" "}
@@ -64,6 +65,7 @@ export default async function HomePage() {
           <Link href="/submit" className="btn-quiet">Add yours</Link>
         </div>
       </section>
+      </div>
 
       <section aria-label="Spotlight of the week and browse" className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 lg:grid-cols-[5fr_7fr]">
         {spotlight && <SpotlightCard launch={spotlight} week={weekStart()} />}

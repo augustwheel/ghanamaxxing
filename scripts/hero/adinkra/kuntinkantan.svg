@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+	<defs>
+		<style>
+			.a {fill: none;stroke: #000;stroke-miterlimit: 10;stroke-width: 10px;}
+		</style>
+	</defs>
+	<g class="a">
+		<circle cx="32.5" cy="32.5" r="27.5"/>
+		<circle cx="32.5" cy="87.5" r="27.5"/>
+		<circle cx="87.5" cy="32.5" r="27.5"/>
+		<circle cx="87.5" cy="87.5" r="27.5"/>
+		<circle cx="60" cy="60" r="27.5"/>
+	</g>
+</svg>

@@ -1,0 +1,107 @@
+{
+  "name": "Ghanamaxxing — Alerts",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Site webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ghanamaxxing-alerts",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ghanamaxxing-alerts",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond",
+      "name": "Respond immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -120
+      ],
+      "parameters": {
+        "respondWith": "noData",
+        "options": {}
+      }
+    },
+    {
+      "id": "build",
+      "name": "Check secret and build email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nif (($json.headers || {})['x-webhook-secret'] !== '__ALERT_WEBHOOK_SECRET__') return [];\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\n/g, '<br>');\nconst rows = (body.lines || []).map(([label, value]) => `<p style=\"margin:0 0 12px\"><strong>${esc(label)}</strong><br>${esc(value)}</p>`).join('');\nreturn [{ json: {\n  subject: `Ghanamaxxing: ${String(body.subject || 'new request').replace(/[\\r\\n]+/g, ' ').slice(0, 150)}`,\n  html: `<div style=\"font-family:sans-serif;font-size:15px\">${rows}<p style=\"margin-top:20px;color:#777\">Saved in Supabase. Reply to this email to answer them, if they left an address.</p></div>`,\n  replyTo: /^[^\\s@,;<>]+@[^\\s@,;<>]+$/.test(body.replyTo || '') ? body.replyTo : '',\n} }];"
+      }
+    },
+    {
+      "id": "email",
+      "name": "Email August",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        480,
+        120
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XSli9zjeTSRhQNLt",
+          "name": "Gmail account"
+        }
+      },
+      "parameters": {
+        "sendTo": "augustministry@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Ghanamaxxing",
+          "replyTo": "={{ $json.replyTo }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Site webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond immediately",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check secret and build email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check secret and build email": {
+      "main": [
+        [
+          {
+            "node": "Email August",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

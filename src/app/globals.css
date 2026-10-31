@@ -2,7 +2,7 @@
 
 /*
  * Ghanamaxxing: shades of black. The base is graphite and panels are deeper black. Colour only comes
- * from the hero word (gold and green, over Ghana's black star), the characters and the launch-type
+ * from the hero word (gold and green), the characters and the launch-type
  * rings (src/config/launch-types.ts), never from decoration.
  */
 @theme {
@@ -93,14 +93,30 @@ body {
     radial-gradient(70% 60% at 50% 40%, #42424b 0%, transparent 85%),
     linear-gradient(#26262b, var(--color-ink));
 }
-/* Ghana's black star behind the word, with soft points to match the bubble letters. */
-.gm-stage::before {
+/* Faint Adinkra symbols, real ones: scripts/hero/adinkra_pattern.py. They carry on below the hero and fade out, because
+   on phones the letters cover nearly all of the hero itself. */
+.gm-hero::before,
+.gm-adinkra::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon fill='%230a0a0b' stroke='%230a0a0b' stroke-width='3' stroke-linejoin='round' points='50,5 61,37 95,37 68,57 78,90 50,70 22,90 32,57 5,37 39,37'/%3E%3C/svg%3E")
-    center / auto 88% no-repeat;
+  pointer-events: none;
+  background: url("/hero/adinkra-pattern.svg") top center / 330px auto;
+}
+.gm-adinkra {
+  position: relative;
+  isolation: isolate;
+}
+.gm-adinkra::before {
+  z-index: -1;
+  -webkit-mask-image: linear-gradient(#000, transparent 70%);
+  mask-image: linear-gradient(#000, transparent 70%);
+}
+@media (min-aspect-ratio: 4/5) {
+  .gm-hero::before,
+  .gm-adinkra::before {
+    background-size: 460px auto;
+  }
 }
 .gm-stage {
   position: relative;
@@ -159,9 +175,6 @@ body {
     --lh: min(calc((100cqw - 24px) / 6.15), calc((100cqh - 24px) / 2 / 1.22));
     max-height: calc((100vw - 24px) / 6.15 * 2 * 1.22 + 40px);
     padding: 8px 12px 16px;
-  }
-  .gm-stage::before {
-    background-size: auto 100%;
   }
   .gm-break-phone {
     display: none;

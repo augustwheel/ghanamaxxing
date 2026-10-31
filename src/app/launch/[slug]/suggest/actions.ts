@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { notifyTeam } from "@/lib/notify";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,5 +37,11 @@ export async function submitSuggestion(_prev: SuggestState, formData: FormData):
     user_id: auth.user?.id ?? null,
   });
   if (error) return { ...typed, error: error.message.includes("Too many") ? error.message : "Couldn't send that. Try again." };
+  const { data: launch } = await supabase.from("launches").select("name").eq("id", launchId).maybeSingle();
+  await notifyTeam({
+    subject: `suggested edit for ${launch?.name ?? "a listing"}`,
+    lines: [["Listing", launch?.name], ["Suggestion", value], ["Email", email]],
+    replyTo: email,
+  });
   return { done: true };
 }

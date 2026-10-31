@@ -23,8 +23,9 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 
 ## Design system
 
-- Dark graphite base, satin bubble letters: GHANA in deep gold, MAXXING in Ghana green, over Ghana's black star
-  (hero only). Satin on purpose: full gloss looked like inflatable vinyl, and matte clay lost the charm. Letters come
+- Dark graphite base, satin bubble letters: GHANA in deep gold, MAXXING in Ghana green, over a dense wall of faint
+  Adinkra symbols behind the hero and the section under it (`scripts/hero/adinkra_pattern.py`;
+  public domain or CC0 only, and don't redraw or add one without checking it with someone who knows them). Satin on purpose: full gloss looked like inflatable vinyl, and matte clay lost the charm. Letters come
   from `scripts/hero/satin_letters.py`, then the icons and share card from `scripts/hero/brand_images.py`. No cream or
   yellow elsewhere in the UI (beyond the word, its G logo and icons, gold appears only in the Ayekoo button's filled
   state).
@@ -46,6 +47,7 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/app/submit/actions.ts`: Add yours, inserts a `pending` launch plus a private `launch_submissions` row.
 - `src/lib/boards.ts`: Newest, Shuffle, Spotlight of the week. `src/lib/launches.ts`: public reads.
 - `src/lib/supabase/*`: clients, all pinned to the `ghanamaxxing` schema (`DB_SCHEMA`); `service.ts` is server-only.
+- `src/lib/notify.ts`: form alerts. Posts to the n8n workflow (`n8n/build_alerts_workflow.py`), which emails August through Gmail.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
 - `src/config/collections.ts` + `src/app/[collection]/page.tsx`: pages for searches like "games made in Ghana". Add a
   page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best".

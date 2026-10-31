@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { notifyTeam } from "@/lib/notify";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,5 +37,10 @@ export async function requestRemoval(_prev: RemoveState, formData: FormData): Pr
     reason,
   });
   if (error) return { values, error: "Couldn't send that. Try again, or email us." };
+  await notifyTeam({
+    subject: `removal request for ${launch}`,
+    lines: [["Listing", launch], ["From", name], ["Email", email], ["Reason", reason]],
+    replyTo: email,
+  });
   return { done: true };
 }

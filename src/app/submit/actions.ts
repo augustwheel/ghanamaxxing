@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { LAUNCH_TYPE_VALUES } from "@/config/launch-types";
 import { normaliseUrl, prepareSeedLaunches } from "@/lib/import/launch-input";
+import { notifyTeam } from "@/lib/notify";
 import { createServiceClient } from "@/lib/supabase/service";
 import { visitorIpHash } from "@/lib/visitor";
 
@@ -61,5 +62,19 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
   const { data: launch, error } = await db.from("launches").insert(row).select("id").single();
   if (error) return { values, error: "Couldn't save that. Try again." };
   await db.from("launch_submissions").insert({ launch_id: launch.id, contact_email: d.email || null, made_it: Boolean(d.made_it), ip_hash: ipHash });
+  await notifyTeam({
+    subject: `new listing to review: ${d.name}`,
+    lines: [
+      ["Name", d.name],
+      ["Description", d.tagline],
+      ["Link", url],
+      ["Category", d.type],
+      ["City", d.city],
+      ["Maker", d.maker_name],
+      ["Email", d.email],
+      ["They made it", d.made_it ? "Yes" : "No"],
+    ],
+    replyTo: d.email,
+  });
   return { done: true };
 }

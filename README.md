@@ -8,7 +8,7 @@ MapLibre + OpenFreeMap · Vercel
 
 ## What's on the site
 
-- **Hero:** the word GHANAMAXXING in satin 3D bubble letters (GHANA gold, MAXXING Ghana green, over Ghana's black star) filling the first
+- **Hero:** the word GHANAMAXXING in satin 3D bubble letters (GHANA gold, MAXXING Ghana green, over a faint wall of Adinkra symbols) filling the first
   screen. Five characters made in Higgsfield walk out from behind the straight-edged letters (H, N, M) as an
   overlapping chain, then rest and repeat. See [Hero characters](#hero-characters).
 - **Explore** (`/launches`): browse by **Newest** or **Shuffle** (reshuffled every visit), filter by type.
