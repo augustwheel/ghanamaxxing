@@ -59,7 +59,7 @@ export const HERO_CHARACTERS: HeroCharacter[] = [
     feet: 0.887,
     edge: 0.78,
     handoffAt: 3.9,
-    exit: { from: 4.25, amount: 0.09 },
+    exit: { from: 4.25, amount: 0.18 },
   },
 ];
 
@@ -73,7 +73,7 @@ export const HERO_TIMING = {
   cycleRestMs: [1500, 2000] as const,
   firstDelayMs: 700,
   /** Character height as a fraction of the letter's height. */
-  characterHeight: 0.6,
+  characterHeight: 0.66,
   /** Letters with straight vertical sides, so a character steps cleanly out from behind the edge. */
   walkOutLetters: ["H", "N", "M"],
 } as const;

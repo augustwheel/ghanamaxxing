@@ -22,8 +22,11 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 
 ## Design system
 
-- Dark graphite base, glossy black bubble letters, MAXXING in Ghana green. No cream or yellow in the UI
-  (gold appears only in the Ayekoo button's filled state).
+- Dark graphite base, satin bubble letters: GHANA in deep gold, MAXXING in Ghana green, over Ghana's black star
+  (hero only). Satin on purpose: full gloss looked like inflatable vinyl, and matte clay lost the charm. Letters come
+  from `scripts/hero/satin_letters.py`, then the icons and share card from `scripts/hero/brand_images.py`. No cream or
+  yellow elsewhere in the UI (beyond the word, its G logo and icons, gold appears only in the Ayekoo button's filled
+  state).
 - Fonts: Fredoka (display, rounded) and Figtree (body). Sentence case; no all-caps labels.
 - Buttons: `.btn` (glossy black bubble) and `.btn-quiet` (outline), in `globals.css`.
 - Colour comes from content: each launch type has a ring colour (`src/config/launch-types.ts`).

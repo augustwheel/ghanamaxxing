@@ -5,7 +5,7 @@ usage: python3 scripts/hero/tint_letters.py <name> <r> <g> <b>
 
 Writes public/hero/letters/<letter>-<name>.webp for M, A, X, I, N, G. A "screen" blend: the black
 body takes the colour and the white highlights stay white, so they still look like the same
-glossy letters. Needs numpy and Pillow. Then set MAXXING_TINT in src/components/hero/hero.tsx.
+glossy letters. Needs numpy and Pillow. No longer used by the hero: see scripts/hero/satin_letters.py.
 """
 import sys
 

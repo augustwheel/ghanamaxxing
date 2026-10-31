@@ -8,11 +8,9 @@ import {
 } from "@/config/characters";
 
 const WORD = "GHANAMAXXING";
-// MAXXING gets its own colour so the word reads as "Ghana maxxing". Options: "ghana-green",
-// "emerald", "silver", "violet" (files are /hero/letters/<letter>-<tint>.webp), or null for all black.
-const MAXXING_TINT: "ghana-green" | "emerald" | "silver" | "violet" | null = "ghana-green";
-const letterSrc = (ch: string, i: number) =>
-  i >= 5 && MAXXING_TINT ? `/hero/letters/${ch}-${MAXXING_TINT}.webp` : `/hero/letters/${ch}.webp`;
+// Each half gets its own colour so the word reads as "Ghana maxxing". The satin letters are made by
+// scripts/hero/satin_letters.py.
+const letterSrc = (ch: string, i: number) => `/hero/letters/${ch}-satin-${i < 5 ? "gold" : "green"}.webp`;
 // Width ÷ height of each letter image (public/hero/letters).
 const ASPECT: Record<string, number> = {
   G: 0.8878,

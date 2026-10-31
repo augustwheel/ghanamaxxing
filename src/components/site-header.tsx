@@ -7,7 +7,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4">
         <Link href="/" aria-label="Ghanamaxxing home" className="flex shrink-0 items-center gap-2 font-display text-lg font-semibold tracking-tight">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/hero/letters/G.webp" alt="" width={22} height={25} className="h-[25px] w-auto" />
+          <img src="/hero/letters/G-satin-gold.webp" alt="" width={22} height={25} className="h-[25px] w-auto" />
           <span className="hidden min-[400px]:inline">ghanamaxxing</span>
         </Link>
         <nav aria-label="Main" className="ml-auto flex items-center font-display text-[14px] font-medium whitespace-nowrap sm:gap-1 sm:text-[15px]">
