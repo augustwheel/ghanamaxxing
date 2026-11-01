@@ -115,6 +115,33 @@
         },
         "options": {}
       }
+    },
+    {
+      "id": "logos",
+      "name": "Ask the site to find logos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        560
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ghanamaxxing.com/api/find-logos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "__ALERT_WEBHOOK_SECRET__"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 70000
+        }
+      }
     }
   ],
   "connections": {
@@ -150,6 +177,11 @@
         [
           {
             "node": "Ask the site to email approved listings",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ask the site to find logos",
             "type": "main",
             "index": 0
           }
