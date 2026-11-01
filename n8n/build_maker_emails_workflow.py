@@ -2,8 +2,8 @@
 
 usage: python3 n8n/build_maker_emails_workflow.py
 
-Two jobs: a webhook that sends an email to whoever submitted a listing, and a schedule that asks the site every 10 minutes
-to email anyone whose listing has been approved. Reads ALERT_WEBHOOK_SECRET from this repo's .env.local and the n8n API key
+A webhook that sends an email to whoever submitted a listing, and a schedule that asks the site every 10 minutes to email
+anyone whose listing has been approved, and to find logos for new listings without one. Reads ALERT_WEBHOOK_SECRET from this repo's .env.local and the n8n API key
 from August Engine's. Writes a copy to n8n/ghanamaxxing-maker-emails.json with the secret taken out. Only touches this workflow.
 """
 import json
@@ -24,6 +24,7 @@ KEY = env("/Users/aosei/Documents/August Engine/.env.local")["N8N_API_KEY"].stri
 BASE = "https://n8n.augustwheel.com"
 NAME = "Ghanamaxxing — Maker emails"
 SITE_JOB = "https://www.ghanamaxxing.com/api/maker-emails"
+LOGO_JOB = "https://www.ghanamaxxing.com/api/find-logos"
 
 # Anything without the right secret stops here. Text is escaped, and only https links to the site itself become links.
 CODE = """const body = $json.body || {};
@@ -63,11 +64,15 @@ def workflow(secret):
              "onError": "continueRegularOutput",
              "parameters": {"method": "POST", "url": SITE_JOB, "sendHeaders": True,
                             "headerParameters": {"parameters": [{"name": "X-Webhook-Secret", "value": secret}]}, "options": {}}},
+            {"id": "logos", "name": "Ask the site to find logos", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [240, 560],
+             "onError": "continueRegularOutput",
+             "parameters": {"method": "POST", "url": LOGO_JOB, "sendHeaders": True,
+                            "headerParameters": {"parameters": [{"name": "X-Webhook-Secret", "value": secret}]}, "options": {"timeout": 70000}}},
         ],
         "connections": {
             "Site webhook": {"main": [[{"node": "Respond immediately", "type": "main", "index": 0}, {"node": "Check secret and build email", "type": "main", "index": 0}]]},
             "Check secret and build email": {"main": [[{"node": "Email the maker", "type": "main", "index": 0}]]},
-            "Every 10 minutes": {"main": [[{"node": "Ask the site to email approved listings", "type": "main", "index": 0}]]},
+            "Every 10 minutes": {"main": [[{"node": "Ask the site to email approved listings", "type": "main", "index": 0}, {"node": "Ask the site to find logos", "type": "main", "index": 0}]]},
         },
         "settings": {"executionOrder": "v1"},
     }

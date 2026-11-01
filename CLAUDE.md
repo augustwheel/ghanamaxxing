@@ -51,6 +51,7 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/lib/maker-email.ts` + `src/app/api/maker-emails/route.ts`: emails to whoever submits a listing: a receipt on submitting, and "it's live" once approved. n8n (`n8n/build_maker_emails_workflow.py`) calls the route every 10 minutes and sends through Gmail, currently from augustministry@gmail.com with the sender name Ghanamaxxing; a domain address (Zoho) is planned.
 - `src/lib/notify.ts`: form alerts. Posts to the n8n workflow (`n8n/build_alerts_workflow.py`), which emails August through Gmail.
 - New listing logos can go in the Supabase bucket `ghanamaxxing-media` (`logos/<slug>.webp`), which needs no deploy; files in `public/logos` do.
+- `src/lib/logo-finder.ts` + `src/app/api/find-logos/route.ts`: n8n calls this every 10 minutes to find logos for new approved listings from their own site icons. Addresses come from a public form, so private hosts are refused. It only fills empty logos, so logos set by hand stay.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
 - `src/config/collections.ts` + `src/app/[collection]/page.tsx`: pages for searches like "games made in Ghana". Add a
   page by adding an entry; it reaches the sitemap, footer and Explore by itself. Plain lists, no "top" or "best". No city gets linked from the site, because it's all of Ghana: the Accra page is search-only.
