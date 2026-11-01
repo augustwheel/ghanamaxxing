@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { LAUNCH_TYPE_VALUES } from "@/config/launch-types";
 import { normaliseUrl, prepareSeedLaunches } from "@/lib/import/launch-input";
+import { receiptEmail, sendMakerEmail } from "@/lib/maker-email";
 import { notifyTeam } from "@/lib/notify";
 import { createServiceClient } from "@/lib/supabase/service";
 import { visitorIpHash } from "@/lib/visitor";
@@ -76,5 +77,6 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
     ],
     replyTo: d.email,
   });
+  if (d.email) await sendMakerEmail(receiptEmail(d.email));
   return { done: true };
 }

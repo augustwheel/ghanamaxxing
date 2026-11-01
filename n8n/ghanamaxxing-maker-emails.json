@@ -1,0 +1,163 @@
+{
+  "name": "Ghanamaxxing — Maker emails",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Site webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ghanamaxxing-maker-email",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ghanamaxxing-maker-email",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond",
+      "name": "Respond immediately",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -120
+      ],
+      "parameters": {
+        "respondWith": "noData",
+        "options": {}
+      }
+    },
+    {
+      "id": "build",
+      "name": "Check secret and build email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        120
+      ],
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nif (($json.headers || {})['x-webhook-secret'] !== '__ALERT_WEBHOOK_SECRET__') return [];\nconst to = String(body.to || '');\nif (!/^[^\\s@,;<>]+@[^\\s@,;<>]+\\.[^\\s@,;<>]+$/.test(to)) return [];\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst text = (body.paragraphs || []).map((p) => `<p style=\"margin:0 0 14px\">${esc(p)}</p>`).join('');\nconst link = body.link && String(body.link.url).startsWith('https://www.ghanamaxxing.com/')\n  ? `<p style=\"margin:0 0 14px\"><a href=\"${esc(body.link.url)}\">${esc(body.link.label)}</a></p>`\n  : '';\nreturn [{ json: {\n  to,\n  subject: String(body.subject || 'Ghanamaxxing').replace(/[\\r\\n]+/g, ' ').slice(0, 150),\n  html: `<div style=\"font-family:sans-serif;font-size:15px;line-height:1.5;color:#222\">${text}${link}<p style=\"margin:20px 0 0\">Augustine<br>Ghanamaxxing</p></div>`,\n  replyTo: String(body.replyTo || ''),\n} }];"
+      }
+    },
+    {
+      "id": "email",
+      "name": "Email the maker",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        480,
+        120
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XSli9zjeTSRhQNLt",
+          "name": "Gmail account"
+        }
+      },
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Ghanamaxxing",
+          "replyTo": "={{ $json.replyTo }}"
+        }
+      }
+    },
+    {
+      "id": "schedule",
+      "name": "Every 10 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        360
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "job",
+      "name": "Ask the site to email approved listings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        360
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.ghanamaxxing.com/api/maker-emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "__ALERT_WEBHOOK_SECRET__"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Site webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond immediately",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check secret and build email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check secret and build email": {
+      "main": [
+        [
+          {
+            "node": "Email the maker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 10 minutes": {
+      "main": [
+        [
+          {
+            "node": "Ask the site to email approved listings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

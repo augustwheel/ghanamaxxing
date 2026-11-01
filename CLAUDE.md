@@ -48,6 +48,7 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `src/lib/boards.ts`: Newest, Shuffle, Spotlight of the week. `src/lib/launches.ts`: public reads.
 - `src/lib/supabase/*`: clients, all pinned to the `ghanamaxxing` schema (`DB_SCHEMA`); `service.ts` is server-only.
 - `src/components/footer-arch.tsx`: the footer's picture, the Independence Arch in dense ASCII on black (`scripts/hero/arch_ascii.py`, cut out of a CC BY photo credited in the footer) with clouds drifting above it. One colour, crisp silhouette, nothing stray, and the star is negative space. Earlier versions were rejected: photo grain and line art looked messy, and a white footer was too jarring on a dark site. Only runs near the screen.
+- `src/lib/maker-email.ts` + `src/app/api/maker-emails/route.ts`: emails to whoever submits a listing: a receipt on submitting, and "it's live" once approved. n8n (`n8n/build_maker_emails_workflow.py`) calls the route every 10 minutes and sends through Gmail, currently from augustministry@gmail.com with the sender name Ghanamaxxing; a domain address (Zoho) is planned.
 - `src/lib/notify.ts`: form alerts. Posts to the n8n workflow (`n8n/build_alerts_workflow.py`), which emails August through Gmail.
 - New listing logos can go in the Supabase bucket `ghanamaxxing-media` (`logos/<slug>.webp`), which needs no deploy; files in `public/logos` do.
 - `src/lib/import/launch-input.ts`: shared validation for seed import, admin import and Add yours.
