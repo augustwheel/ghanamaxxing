@@ -7,7 +7,7 @@ import type { Launch } from "@/lib/types";
 
 type Tab = { id: string; label: string; blurb: string; launches: Launch[] };
 
-// Newest and Shuffle, three each. Shuffle draws a fresh three from everything on every visit.
+// Newest and Shuffle use the same preview size. Shuffle draws a fresh set on every visit.
 export function RankingsPreview({ tabs, all }: { tabs: Tab[]; all: Launch[] }) {
   const [active, setActive] = useState(tabs[0].id);
   const [shuffled, setShuffled] = useState<Launch[] | null>(null);
@@ -17,8 +17,8 @@ export function RankingsPreview({ tabs, all }: { tabs: Tab[]; all: Launch[] }) {
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
-    setShuffled(a.slice(0, 3));
-  }, [all]);
+    setShuffled(a.slice(0, tabs[0]?.launches.length ?? 0));
+  }, [all, tabs]);
 
   const tab = tabs.find((t) => t.id === active)!;
   const launches = tab.id === "shuffle" && shuffled ? shuffled : tab.launches;
@@ -40,7 +40,7 @@ export function RankingsPreview({ tabs, all }: { tabs: Tab[]; all: Launch[] }) {
         ))}
       </div>
       {tab.blurb && <p className="mt-4 px-1 text-sm text-muted">{tab.blurb}</p>}
-      <ul role="tabpanel" className={`${tab.blurb ? "mt-3" : "mt-4"} flex flex-1 flex-col justify-between`}>
+      <ul role="tabpanel" className={`${tab.blurb ? "mt-3" : "mt-4"} flex flex-1 flex-col justify-evenly`}>
         {launches.map((l) => (
           <li key={l.id}>
             <Link href={`/launch/${l.slug}`} className="group flex items-center gap-4 rounded-2xl px-2 py-3 hover:bg-surface-2">

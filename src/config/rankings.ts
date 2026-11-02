@@ -2,7 +2,7 @@
 // used to sort or pick anything.
 export const BOARDS = {
   /** How many launches each board shows on the home page. */
-  previewSize: 3,
+  previewSize: 4,
 } as const;
 
 // Spotlight of the week: picked every Monday (Accra time), the same for everyone all week.
