@@ -36,12 +36,13 @@ const RAW: Record<string, { lat: number; lng: number; label: string; radiusKm?: 
   tamale: { label: "Tamale", lat: 9.4008, lng: -0.8393 },
   sunyani: { label: "Sunyani", lat: 7.3349, lng: -2.3123 },
   techiman: { label: "Techiman", lat: 7.5833, lng: -1.9333 },
+  nkoranza: { label: "Nkoranza", lat: 7.5713, lng: -1.7087 },
   obuasi: { label: "Obuasi", lat: 6.2056, lng: -1.665 },
   wa: { label: "Wa", lat: 10.0601, lng: -2.5099 },
   bolgatanga: { label: "Bolgatanga", lat: 10.7856, lng: -0.8514 },
 };
 
-const TOWNS = new Set(["tema", "kasoa", "takoradi", "cape coast", "winneba", "koforidua", "ho", "tamale", "sunyani", "techiman", "obuasi", "wa", "bolgatanga"]);
+const TOWNS = new Set(["tema", "kasoa", "takoradi", "cape coast", "winneba", "koforidua", "ho", "tamale", "sunyani", "techiman", "nkoranza", "obuasi", "wa", "bolgatanga"]);
 
 export const PLACES = Object.fromEntries(
   Object.entries(RAW).map(([k, v]) => [k, { ...v, radiusKm: v.radiusKm ?? (TOWNS.has(k) ? TOWN_KM : AREA_KM) }]),

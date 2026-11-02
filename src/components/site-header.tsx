@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteSearch } from "@/components/app-search";
 import { SITE } from "@/config/site";
 
 export function SiteHeader() {
@@ -8,8 +9,9 @@ export function SiteHeader() {
         <Link href="/" aria-label="Ghanamaxxing home" className="flex shrink-0 items-center gap-2 font-display text-lg font-semibold tracking-tight">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/hero/letters/G-satin-gold.webp" alt="" width={22} height={25} className="h-[25px] w-auto" />
-          <span className="hidden min-[400px]:inline">ghanamaxxing</span>
+          <span className="hidden lg:inline">ghanamaxxing</span>
         </Link>
+        <SiteSearch />
         <nav aria-label="Main" className="ml-auto flex items-center font-display text-[14px] font-medium whitespace-nowrap sm:gap-1 sm:text-[15px]">
           {SITE.nav.map((item) => (
             <Link key={item.href} href={item.href} className="rounded-full px-2 py-1.5 text-muted transition-colors hover:text-chalk sm:px-3">

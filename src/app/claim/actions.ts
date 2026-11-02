@@ -12,6 +12,7 @@ const schema = z.object({
   name: z.string().trim().min(1, "Add your name").max(120),
   email: z.string().trim().email("That email doesn't look right").max(200),
   connection: z.string().trim().min(2, "Tell us how you're connected to it").max(2000),
+  ayekoo_updates: z.literal("on").optional(),
   website: z.string().max(0), // honeypot
 });
 
@@ -35,6 +36,7 @@ export async function requestClaim(_prev: ClaimState, formData: FormData): Promi
     requester_name: name,
     requester_email: email,
     connection,
+    ...(parsed.data.ayekoo_updates ? { ayekoo_updates_opted_in_at: new Date().toISOString() } : {}),
   });
   if (error) return { values, error: "Couldn't send that. Try again, or email us." };
   await notifyTeam({

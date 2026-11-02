@@ -7,6 +7,7 @@ import { LaunchLogo } from "@/components/launch-logo";
 import { SourceLabel } from "@/components/source-label";
 import { AyekooButton } from "@/components/ayekoo-button";
 import { collectionForType } from "@/config/collections";
+import { FEATURED_LAUNCHES } from "@/config/featured-launches";
 import { getLaunchType } from "@/config/launch-types";
 import { SITE } from "@/config/site";
 import { isOptimizable } from "@/lib/format";
@@ -20,8 +21,9 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const launch = await getLaunchBySlug((await params).slug);
   if (!launch) return { title: "Not found" };
+  const feature = FEATURED_LAUNCHES[launch.slug];
   const title = `${launch.name}: ${launch.tagline}`;
-  const images = launch.image_url ? [launch.image_url] : launch.logo_url ? [launch.logo_url] : ["/opengraph-image.png"];
+  const images = [launch.image_url ?? feature?.imageUrl ?? launch.logo_url ?? "/opengraph-image.png"];
   return {
     title,
     description: launch.description ?? launch.tagline,
@@ -42,6 +44,7 @@ const SOCIAL_LABELS: Record<keyof MakerSocials, string> = {
 export default async function LaunchPage({ params }: Props) {
   const launch = await getLaunchBySlug((await params).slug);
   if (!launch) notFound();
+  const feature = FEATURED_LAUNCHES[launch.slug];
   // A handful of others to suggest after someone says ayekoo (three are picked at random in the browser).
   const others = (await getApprovedLaunches())
     .filter((l) => l.id !== launch.id)
@@ -50,7 +53,10 @@ export default async function LaunchPage({ params }: Props) {
   const type = getLaunchType(launch.type);
   const collection = collectionForType(launch.type);
   const moreHref = collection ? `/${collection.slug}` : `/launches?type=${type.value}`;
-  const socials = Object.entries(launch.maker_socials ?? {}).filter(([, url]) => url) as [keyof MakerSocials, string][];
+  const imageUrl = launch.image_url ?? feature?.imageUrl;
+  const makerName = launch.maker_name ?? feature?.makerName;
+  const socials = Object.entries({ ...(feature?.makerX ? { x: feature.makerX } : {}), ...launch.maker_socials })
+    .filter(([, url]) => url) as [keyof MakerSocials, string][];
 
   return (
     <article className="relative">
@@ -107,28 +113,46 @@ export default async function LaunchPage({ params }: Props) {
           <AyekooButton launchId={launch.id} initialCount={launch.ayekoo_count} name={launch.name} slug={launch.slug} others={others} />
         </div>
 
-        {launch.image_url && (
-          <div className="relative mt-10 aspect-video overflow-hidden rounded-[2rem] bg-coal shadow-2xl">
-            <Image
-              src={launch.image_url}
-              alt={`Screenshot of ${launch.name}`}
-              fill
-              unoptimized={!isOptimizable(launch.image_url)}
-              sizes="(max-width: 768px) 100vw, 768px"
-              className="object-cover"
-            />
-          </div>
+        {imageUrl && (
+          <figure className="mt-10">
+            <div className="relative aspect-video overflow-hidden rounded-[2rem] bg-coal shadow-2xl">
+              <Image
+                src={imageUrl}
+                alt={!launch.image_url && feature ? feature.imageAlt : `Screenshot of ${launch.name}`}
+                fill
+                unoptimized={!isOptimizable(imageUrl)}
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+              />
+            </div>
+            {!launch.image_url && feature && <figcaption className="mt-3 text-sm text-muted">{feature.imageCredit}</figcaption>}
+          </figure>
+        )}
+
+        {feature && (
+          <a href={feature.videoUrl} target="_blank" rel="noopener noreferrer" className="btn-quiet mt-5">
+            {feature.videoLabel} ↗
+          </a>
         )}
 
         {launch.description && (
           <p className="mt-10 max-w-[65ch] text-lg leading-relaxed whitespace-pre-line text-chalk/90">{launch.description}</p>
         )}
 
-        {(launch.maker_name || socials.length > 0) && (
+        {feature && (
+          <section className="mt-8" aria-label={`More about ${launch.name}`}>
+            <p className="max-w-[65ch] text-lg leading-relaxed text-chalk/90">{feature.details}</p>
+            <ul className="mt-6 flex flex-wrap gap-2">
+              {feature.facts.map((fact) => <li key={fact} className="rounded-full border border-line px-4 py-2 font-display text-sm text-muted">{fact}</li>)}
+            </ul>
+          </section>
+        )}
+
+        {(makerName || socials.length > 0) && (
           <p className="mt-8 text-muted">
-            {launch.maker_name && (
+            {makerName && (
               <>
-                Made by <span className="font-display font-semibold text-chalk">{launch.maker_name}</span>
+                Made by <span className="font-display font-semibold text-chalk">{makerName}</span>
               </>
             )}
             {socials.map(([key, url]) => (

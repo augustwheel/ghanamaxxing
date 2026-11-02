@@ -48,6 +48,16 @@ export function ClaimForm({ launch }: { launch: string }) {
         <span className="font-display text-lg font-semibold">How are you connected to it?</span>
         <textarea key={`c-${v.connection}`} name="connection" required rows={4} defaultValue={v.connection} placeholder="For example: I'm the founder. Here's my LinkedIn" className={input} />
       </label>
+      <label className="flex cursor-pointer items-center gap-3 text-sm text-chalk">
+        <input
+          key={`u-${v.ayekoo_updates}`}
+          type="checkbox"
+          name="ayekoo_updates"
+          defaultChecked={v.ayekoo_updates === "on"}
+          className="h-5 w-5 shrink-0 accent-chalk"
+        />
+        <span>Email me Ayekoo milestones (10 Ayekoos, etc.)</span>
+      </label>
       {state.error && (
         <p role="alert" className="rounded-2xl bg-red/15 px-4 py-3 text-red">
           {state.error}

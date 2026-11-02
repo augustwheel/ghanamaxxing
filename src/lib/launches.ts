@@ -1,6 +1,7 @@
 import "server-only";
 import sample from "../../data/seed-launches.json";
 import { isLaunchType, type LaunchType } from "@/config/launch-types";
+import { withLegacyType } from "@/config/legacy-launch-types";
 import { prepareSeedLaunches } from "@/lib/import/launch-input";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -15,16 +16,16 @@ export async function getApprovedLaunches({ type, limit = 200 }: { type?: Launch
       .filter((l) => !type || l.type === type)
       .slice(0, limit);
   }
-  let query = createPublicClient()
+  const query = createPublicClient()
     .from("launches")
     .select(LAUNCH_COLUMNS)
     .eq("status", "approved")
     .order("launched_at", { ascending: false })
-    .limit(limit);
-  if (type) query = query.eq("type", type);
+    .limit(type ? 1000 : limit);
   const { data, error } = await query;
   if (error) throw error;
-  return data as Launch[];
+  const launches = (data as Launch[]).map(withLegacyType);
+  return type ? launches.filter((launch) => launch.type === type).slice(0, limit) : launches;
 }
 
 export async function getLaunchBySlug(slug: string) {
@@ -36,7 +37,7 @@ export async function getLaunchBySlug(slug: string) {
     .eq("slug", slug.toLowerCase())
     .maybeSingle();
   if (error) throw error;
-  return data as Launch | null;
+  return data ? withLegacyType(data as Launch) : null;
 }
 
 export function parseTypeParam(value: string | string[] | undefined) {
@@ -48,7 +49,7 @@ export function parseTypeParam(value: string | string[] | undefined) {
 function sampleLaunches(): Launch[] {
   const { rows } = prepareSeedLaunches(sample, { slugs: [], urls: [] });
   return rows
-    .map((r, i) => ({
+    .map((r, i) => withLegacyType({
       ...r,
       id: `sample-${i}`,
       type: r.type as LaunchType,

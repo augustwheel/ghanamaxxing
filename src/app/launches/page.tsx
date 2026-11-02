@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SearchField } from "@/components/app-search";
 import { LaunchCount } from "@/components/launch-count";
 import { LaunchList } from "@/components/launch-list";
 import { TypeFilter } from "@/components/type-filter";
@@ -7,13 +8,24 @@ import { TOPICS, collectionForType } from "@/config/collections";
 import { getLaunchType, LAUNCH_TYPES, type LaunchType } from "@/config/launch-types";
 import { BOARD_TABS, newestLaunches, parseBoardParam } from "@/lib/boards";
 import { getApprovedLaunches, parseTypeParam } from "@/lib/launches";
+import { searchByName } from "@/lib/search";
 
 export const revalidate = 60;
 
-type Props = { searchParams: Promise<{ type?: string | string[]; board?: string | string[] }> };
+type Props = { searchParams: Promise<{ type?: string | string[]; board?: string | string[]; q?: string | string[] }> };
+
+function searchParam(value: string | string[] | undefined) {
+  return (Array.isArray(value) ? value[0] : value)?.trim().slice(0, 80) ?? "";
+}
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
+  const query = searchParam(sp.q);
+  if (query) return {
+    title: `Search for “${query}”`,
+    description: `Apps and startups matching “${query}” on Ghanamaxxing.`,
+    robots: { index: false, follow: true },
+  };
   const type = parseTypeParam(sp.type);
   const title = type ? `${getLaunchType(type).label} from Ghana` : "Explore apps and startups from Ghana";
   // Every view of this page points search engines at one address: the type's own page when it has one.
@@ -28,6 +40,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function LaunchesPage({ searchParams }: Props) {
   const sp = await searchParams;
+  const query = searchParam(sp.q);
   const type = parseTypeParam(sp.type);
   const tabId = parseBoardParam(sp.board);
   const tab = BOARD_TABS.find((t) => t.id === tabId)!;
@@ -35,51 +48,65 @@ export default async function LaunchesPage({ searchParams }: Props) {
   const counts = Object.fromEntries(LAUNCH_TYPES.map((t) => [t.value, 0])) as Record<LaunchType, number>;
   for (const launch of allLaunches) counts[launch.type]++;
   const launches = type ? allLaunches.filter((launch) => launch.type === type) : allLaunches;
-  const list = newestLaunches(launches);
+  const list = query ? searchByName(allLaunches, query) : newestLaunches(launches);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-10 sm:pt-14">
-      <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">Explore</h1>
-      <p className="mt-3 max-w-xl text-lg text-muted">
-        Apps and startups from across Ghana. Browse what&apos;s new, shuffle for something unexpected, and say ayekoo to the ones you love.
-      </p>
+      <h1 className="font-display text-5xl font-bold tracking-tight sm:text-6xl">{query ? "Search results" : "Explore"}</h1>
+      {query ? (
+        <p className="mt-3 max-w-xl text-lg text-muted">Apps and startups matching “{query}”.</p>
+      ) : (
+        <p className="mt-3 max-w-xl text-lg text-muted">
+          Apps and startups from across Ghana. Browse what&apos;s new, shuffle for something unexpected, and say ayekoo to the ones you love.
+        </p>
+      )}
 
-      <nav aria-label="Browse" className="mt-8 flex gap-1 overflow-x-auto rounded-full bg-surface p-1.5 [scrollbar-width:none]">
-        {BOARD_TABS.map((t) => {
-          const q = new URLSearchParams({ board: t.id, ...(type ? { type } : {}) });
-          const on = t.id === tabId;
-          return (
-            <Link
-              key={t.id}
-              href={`/launches?${q}`}
-              scroll={false}
-              aria-current={on ? "page" : undefined}
-              className={`shrink-0 flex-1 rounded-full px-4 py-2.5 text-center font-display font-semibold whitespace-nowrap transition-colors ${
-                on ? "btn !py-2.5" : "text-muted hover:text-chalk"
-              }`}
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="mt-4">
-        <TypeFilter active={type} basePath="/launches" params={{ board: tabId }} counts={counts} total={allLaunches.length} />
+      <div className="mt-8">
+        <SearchField key={query} initialQuery={query} roomy />
       </div>
+
+      {!query && (
+        <>
+          <nav aria-label="Browse" className="mt-8 flex gap-1 overflow-x-auto rounded-full bg-surface p-1.5 [scrollbar-width:none]">
+            {BOARD_TABS.map((t) => {
+              const q = new URLSearchParams({ board: t.id, ...(type ? { type } : {}) });
+              const on = t.id === tabId;
+              return (
+                <Link
+                  key={t.id}
+                  href={`/launches?${q}`}
+                  scroll={false}
+                  aria-current={on ? "page" : undefined}
+                  className={`shrink-0 flex-1 rounded-full px-4 py-2.5 text-center font-display font-semibold whitespace-nowrap transition-colors ${
+                    on ? "btn !py-2.5" : "text-muted hover:text-chalk"
+                  }`}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="mt-4">
+            <TypeFilter active={type} basePath="/launches" params={{ board: tabId }} counts={counts} total={allLaunches.length} />
+          </div>
+        </>
+      )}
 
       <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-2 pb-3">
         <LaunchCount count={list.length} />
-        {tab.blurb && <p className="text-sm text-muted">{tab.blurb}</p>}
+        {!query && tab.blurb && <p className="text-sm text-muted">{tab.blurb}</p>}
       </div>
       {list.length ? (
-        <LaunchList launches={list} shuffle={tabId === "shuffle"} />
+        <LaunchList launches={list} shuffle={!query && tabId === "shuffle"} />
       ) : (
         <div className="mt-6 rounded-[2rem] bg-surface px-6 py-12 text-center">
-          <p className="font-display text-2xl font-semibold">Nothing here yet</p>
-          <p className="mt-2 text-muted">Know one from Ghana we&apos;re missing?</p>
+          <p className="font-display text-2xl font-semibold">{query ? "No matching apps yet" : "Nothing here yet"}</p>
+          <p className="mt-2 text-muted">{query ? "Know the app we're missing?" : "Know one from Ghana we're missing?"}</p>
           <Link href="/submit" className="btn mt-6">Add it</Link>
         </div>
       )}
+
+      {query && <Link href="/launches" className="mt-6 inline-block font-display font-semibold text-muted hover:text-chalk">Explore everything</Link>}
 
       <nav aria-label="Browse by topic" className="mt-12">
         <h2 className="font-display text-2xl font-semibold">Browse by topic</h2>

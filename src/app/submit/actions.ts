@@ -11,16 +11,19 @@ import { visitorIpHash } from "@/lib/visitor";
 export type SubmitState = { done?: boolean; error?: string; existing?: { name: string; slug: string }; values?: Record<string, string> };
 
 const PER_IP_PER_HOUR = 5;
+// The database requires a tagline, so mark blank submissions clearly for review before publication.
+const REVIEW_TAGLINE = "Details to be added during review";
 
 const schema = z.object({
   url: z.string().trim().min(1, "Add the link"),
   name: z.string().trim().min(1, "Add the name").max(80),
-  tagline: z.string().trim().min(3, "Add a one-line description").max(100, "Keep the description under 100 characters"),
+  tagline: z.string().trim().max(100, "Keep the description under 100 characters"),
   type: z.enum(LAUNCH_TYPE_VALUES, { error: "Pick a category" }),
   city: z.string().trim().max(80).optional(),
   maker_name: z.string().trim().max(80).optional(),
   email: z.union([z.literal(""), z.string().trim().email("That email doesn't look right").max(200)]).optional(),
   made_it: z.literal("on").optional(),
+  ayekoo_updates: z.literal("on").optional(),
   nickname: z.string().max(0), // honeypot: hidden from people
 });
 
@@ -36,6 +39,9 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
     return { values, error: issue.message };
   }
   const d = parsed.data;
+  if (d.ayekoo_updates && (!d.made_it || !d.email)) {
+    return { values, error: "Add your email and confirm you built this to request Ayekoo updates." };
+  }
   const url = /^https?:\/\//i.test(d.url) ? d.url : `https://${d.url}`;
 
   const ipHash = await visitorIpHash();
@@ -54,7 +60,7 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
 
   // Same validation and place lookup as the seed import, then marked pending for review.
   const { rows, errors } = prepareSeedLaunches(
-    [{ name: d.name, tagline: d.tagline, url, type: d.type, city: d.city, maker_name: d.maker_name }],
+    [{ name: d.name, tagline: d.tagline || REVIEW_TAGLINE, url, type: d.type, city: d.city, maker_name: d.maker_name }],
     { slugs: existing.map((l) => l.slug), urls: existing.map((l) => l.url) },
   );
   if (errors.length) return { values, error: errors[0].messages[0] };
@@ -62,12 +68,22 @@ export async function submitLaunch(_prev: SubmitState, formData: FormData): Prom
 
   const { data: launch, error } = await db.from("launches").insert(row).select("id").single();
   if (error) return { values, error: "Couldn't save that. Try again." };
-  await db.from("launch_submissions").insert({ launch_id: launch.id, contact_email: d.email || null, made_it: Boolean(d.made_it), ip_hash: ipHash });
+  const { error: submissionError } = await db.from("launch_submissions").insert({
+    launch_id: launch.id,
+    contact_email: d.email || null,
+    made_it: Boolean(d.made_it),
+    ...(d.ayekoo_updates ? { ayekoo_updates_opted_in_at: new Date().toISOString() } : {}),
+    ip_hash: ipHash,
+  });
+  if (submissionError) {
+    await db.from("launches").delete().eq("id", launch.id);
+    return { values, error: "Couldn't save that. Try again." };
+  }
   await notifyTeam({
     subject: `new listing to review: ${d.name}`,
     lines: [
       ["Name", d.name],
-      ["Description", d.tagline],
+      ["Description", d.tagline || "To add during review"],
       ["Link", url],
       ["Category", d.type],
       ["City", d.city],

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { submitLaunch, type SubmitState } from "./actions";
 import { LAUNCH_TYPES } from "@/config/launch-types";
 
@@ -13,6 +13,8 @@ const hint = "ml-2 text-muted";
 export function SubmitForm() {
   const [state, action, pending] = useActionState<SubmitState, FormData>(submitLaunch, {});
   const v = state.values ?? {};
+  const [madeIt, setMadeIt] = useState(v.made_it === "on");
+  const [updates, setUpdates] = useState(v.ayekoo_updates === "on");
   // Inputs are keyed on the echoed value so they refill after an error.
   const k = (name: string) => `${name}-${v[name] ?? ""}`;
 
@@ -50,11 +52,16 @@ export function SubmitForm() {
         <span className={label}>Name</span>
         <input key={k("name")} name="name" required maxLength={80} defaultValue={v.name} className={input} />
       </label>
-      <label className="block">
-        <span className={label}>What it does</span>
-        <span className={hint}>one line</span>
-        <input key={k("tagline")} name="tagline" required maxLength={100} placeholder="e.g. Split bills with mobile money in one tap" defaultValue={v.tagline} className={input} />
-      </label>
+      <div>
+        <label className="block">
+          <span className={label}>What it does</span>
+          <span className={hint}>optional, one line</span>
+          <input key={k("tagline")} name="tagline" maxLength={100} placeholder="e.g. Split bills with mobile money in one tap" defaultValue={v.tagline} className={input} />
+        </label>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          A short line is enough, but you can leave this blank. During review, we&apos;ll look for public details we can verify to make the app&apos;s page more useful and easier to find.
+        </p>
+      </div>
 
       <fieldset>
         <legend className={label}>Category</legend>
@@ -88,14 +95,29 @@ export function SubmitForm() {
 
       <label className="block">
         <span className={label}>Your email</span>
-        <span className={hint}>optional, only so we can tell you when it&apos;s live</span>
-        <input key={k("email")} name="email" type="email" maxLength={200} defaultValue={v.email} className={input} />
+        <span className={hint}>{updates ? "needed for Ayekoo updates" : "optional, so we can reach you about this app"}</span>
+        <input key={k("email")} name="email" type="email" required={updates} maxLength={200} defaultValue={v.email} className={input} />
       </label>
 
       <label className="flex cursor-pointer items-center gap-3">
-        <input key={k("made_it")} type="checkbox" name="made_it" defaultChecked={v.made_it === "on"} className="h-5 w-5 accent-[#f5c542]" />
+        <input type="checkbox" name="made_it" checked={madeIt} onChange={(event) => {
+          setMadeIt(event.target.checked);
+          if (!event.target.checked) setUpdates(false);
+        }} className="h-5 w-5 accent-chalk" />
         <span className="font-display text-lg font-semibold">I built this</span>
       </label>
+      {madeIt && (
+        <label className="ml-8 flex cursor-pointer items-center gap-3 text-sm text-chalk">
+          <input
+            type="checkbox"
+            name="ayekoo_updates"
+            checked={updates}
+            onChange={(event) => setUpdates(event.target.checked)}
+            className="h-5 w-5 shrink-0 accent-chalk"
+          />
+          <span>Email me Ayekoo milestones (10 Ayekoos, etc.)</span>
+        </label>
+      )}
 
       {state.existing && (
         <p className="rounded-2xl bg-surface px-4 py-3">

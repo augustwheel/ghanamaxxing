@@ -53,6 +53,27 @@ export const COLLECTIONS: Collection[] = [
     type: "edtech",
   },
   {
+    slug: "healthtech-startups-in-ghana",
+    title: "Health tech startups in Ghana",
+    description: "Health tech from Ghana, including digital care, pharmacy services, medical research and diagnostics.",
+    intro: "Apps and startups from Ghana working on healthcare, from finding a doctor and accessing medicines to cancer research and diagnostics.",
+    type: "healthtech",
+  },
+  {
+    slug: "agritech-startups-in-ghana",
+    title: "Agritech startups in Ghana",
+    description: "Agritech from Ghana: tools for farmers, farm services, market access and food supply chains.",
+    intro: "Apps and startups from Ghana helping farmers grow, find services, reach buyers and reduce losses after harvest.",
+    type: "agritech",
+  },
+  {
+    slug: "logistics-startups-in-ghana",
+    title: "Logistics startups in Ghana",
+    description: "Logistics apps and startups from Ghana for deliveries, warehousing and order fulfilment.",
+    intro: "Apps and startups from Ghana helping people and businesses send parcels, manage deliveries and fulfil orders.",
+    type: "logistics",
+  },
+  {
     slug: "startups-in-accra",
     title: "Startups in Accra",
     description: "Apps and startups based in Accra, Ghana, from Osu and East Legon to Labone and Nima.",
