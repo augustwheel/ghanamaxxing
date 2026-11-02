@@ -51,7 +51,7 @@ function CategoryDrawing({ type }: { type: LaunchType }) {
       drawing = <><path d="M31 37c0-13 9-22 22-22s22 9 22 22c0 9-5 15-11 20-6 5-9 10-9 17H42c0-7-3-12-9-17-6-5-11-11-11-20Z" fill="currentColor" fillOpacity=".2" /><path d="M31 37c0-13 9-22 22-22s22 9 22 22c0 9-5 15-11 20-6 5-9 10-9 17H42c0-7-3-12-9-17-6-5-11-11-11-20ZM42 81h13m-11 6h9" /><circle cx="44" cy="40" r="2" fill="currentColor" stroke="none" /><circle cx="62" cy="40" r="2" fill="currentColor" stroke="none" /><path d="M47 50c4 3 8 3 12 0" /></>;
   }
   return (
-    <svg aria-hidden="true" viewBox="0 0 108 108" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="category-illustration pointer-events-none absolute -right-3 -top-3 h-28 w-28">
+    <svg aria-hidden="true" viewBox="0 0 108 108" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="category-illustration pointer-events-none absolute -right-3 -top-3 h-24 w-24 sm:h-28 sm:w-28">
       <circle cx="54" cy="54" r="49" fill="currentColor" fillOpacity=".09" stroke="none" />
       <g className="category-character">{drawing}</g>
       <path className="category-sparkle" d="M16 21v8m-4-4h8" />
@@ -76,15 +76,15 @@ export function CategoryGrid({ launches }: { launches: Pick<Launch, "type">[] })
             <Link
               key={type.value}
               href={href}
-              className="category-card group relative flex min-h-44 flex-col justify-between overflow-hidden rounded-[1.5rem] border border-line bg-surface p-4 focus-visible:border-chalk sm:p-5"
+              className="category-card group relative flex min-h-44 flex-col justify-end overflow-hidden rounded-[1.5rem] border border-line bg-surface p-4 focus-visible:border-chalk sm:p-5"
               style={{ color: type.color, "--category-color": type.color } as CSSProperties}
             >
               <CategoryDrawing type={type.value} />
-              <span className="relative z-10 inline-flex items-baseline gap-1.5 self-start font-display text-chalk">
-                <span className="text-3xl font-bold leading-none tabular-nums sm:text-4xl">{counts[type.value]}</span>
-                <span className="text-xs font-semibold text-muted sm:text-sm">{counts[type.value] === 1 ? "app" : "apps"}</span>
-              </span>
               <span className="relative z-10 flex flex-col">
+                <span className="mb-3 inline-flex items-baseline gap-1.5 self-start font-display text-chalk">
+                  <span className="text-3xl font-bold leading-none tabular-nums sm:text-4xl">{counts[type.value]}</span>
+                  <span className="text-xs font-semibold text-muted sm:text-sm">{counts[type.value] === 1 ? "app" : "apps"}</span>
+                </span>
                 <span className="font-display text-xl font-semibold leading-tight text-chalk sm:text-2xl">{type.label}</span>
                 <span className="mt-1 text-xs leading-snug text-muted sm:text-sm">{DESCRIPTIONS[type.value]}</span>
               </span>

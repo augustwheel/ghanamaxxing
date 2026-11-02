@@ -11,12 +11,16 @@ MapLibre + OpenFreeMap · Vercel
 - **Hero:** the word GHANAMAXXING in satin 3D bubble letters (GHANA gold, MAXXING Ghana green, over a faint wall of Adinkra symbols) filling the first
   screen. Five characters made in Higgsfield walk out from behind the straight-edged letters (H, N, M) as an
   overlapping chain, then rest and repeat. See [Hero characters](#hero-characters).
+- **Search:** the header suggests matching apps as visitors type. `/launches` also has a search field.
 - **Explore** (`/launches`): browse by **Newest** or **Shuffle** (reshuffled every visit), filter by type.
+  The home page shows four apps in each preview and category cards with the current number of approved apps.
   Nothing is ranked.
-- **Launch pages** (`/launch/[slug]`): logo, one-liner, type, city, link, and the **Ayekoo** button.
+- **Launch pages** (`/launch/[slug]`): each app has its own page and SEO metadata, with a logo, one-liner,
+  type, city, link, and the **Ayekoo** button. Search-focused category collections are in `src/config/collections.ts`.
 - **Ayekoo** ("well done" in Twi): a one-tap cheer. No sign-in. Fills with gold, bursts into confetti, then offers
   share buttons and three more launches to cheer. Counts show only on a launch's own page and are never used to sort.
-- **Spotlight of the week:** a random weekly pick (or a pinned one), on the home page.
+- **Spotlight of the week:** a random weekly pick (or a pinned one), on the home page. Four Corners is currently
+  pinned, with a richer page and a featured image on its home card.
 - **Map** (`/map` and on the home page): dark map with neon-ringed logo pins, clustering when zoomed out,
   type filter chips, and a fly-in to Accra.
 - **Add yours** (`/submit`): no-account form; submissions are saved as `pending` for review.
@@ -60,6 +64,9 @@ Migrations are run **by hand in the Supabase SQL Editor**, in order:
 4. `supabase/migrations/20261030000004_submissions.sql`: private `launch_submissions` for Add yours
 5. `supabase/migrations/20261031000005_claim_requests.sql`: claim requests without sign-in
 6. `supabase/migrations/20261031000006_newsletter.sql`: private newsletter subscribers and delivery records
+7. `supabase/migrations/20261101000008_maker_emails.sql`: optional maker email preferences
+8. `supabase/migrations/20261102000009_healthtech.sql`: Ayekoo email preference fields and moves existing apps
+   from Other into Health tech, Agritech and Logistics
 
 `ghanamaxxing` must be listed in **Project Settings → Data API → Exposed schemas**, or the site can't reach it.
 
@@ -108,10 +115,13 @@ area (see `src/config/places.ts`) are spread a little around it so pins don't st
 | What | File |
 |---|---|
 | Launch types (labels, ring colours) | `src/config/launch-types.ts` |
+| Home category cards, descriptions, illustrations and counts | `src/components/home/category-grid.tsx` |
+| Search suggestions and matching | `src/components/app-search.tsx`, `src/lib/search.ts` |
 | Hero characters, timing, size, walk-out letters | `src/config/characters.ts` |
 | MAXXING colour | `MAXXING_TINT` in `src/components/hero/hero.tsx` |
 | Ayekoo word/language (rotation) | `src/config/ayekoo.ts` |
 | Spotlight pin, preview sizes | `src/config/rankings.ts` |
+| Rich Spotlight page details | `src/config/featured-launches.ts` |
 | Nav, footer, contact email, analytics ID | `src/config/site.ts` |
 | Known cities/areas and coordinates | `src/config/places.ts` |
 | Colours, buttons, hero/map CSS | `src/app/globals.css` |
