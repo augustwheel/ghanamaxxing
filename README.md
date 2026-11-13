@@ -19,8 +19,8 @@ MapLibre + OpenFreeMap · Vercel
   type, city, link, and the **Ayekoo** button. Search-focused category collections are in `src/config/collections.ts`.
 - **Ayekoo** ("well done" in Twi): a one-tap cheer. No sign-in. Fills with gold, bursts into confetti, then offers
   share buttons and three more launches to cheer. Counts show only on a launch's own page and are never used to sort.
-- **Spotlight of the week:** a random weekly pick (or a pinned one), on the home page. Four Corners is currently
-  pinned, with a richer page and a featured image on its home card.
+- **Spotlight of the week:** a random weekly pick (or a pinned one), on the home page. Flyte is currently
+  pinned. Four Corners retains its richer page and featured home-card details for future spotlights.
 - **Map** (`/map` and on the home page): dark map with neon-ringed logo pins, clustering when zoomed out,
   type filter chips, and a fly-in to Accra.
 - **Add yours** (`/submit`): no-account form; submissions are saved as `pending` for review.

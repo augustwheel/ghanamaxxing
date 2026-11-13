@@ -129,7 +129,24 @@ export default async function LaunchPage({ params }: Props) {
           </figure>
         )}
 
-        {feature && (
+        {feature?.videoPoster ? (
+          <section id="featured-video" aria-label={feature.videoLabel} className="mt-10 scroll-mt-24">
+            <h2 className="font-display text-2xl font-semibold text-chalk sm:text-3xl">{feature.videoLabel}</h2>
+            <div className="mt-4 aspect-video overflow-hidden rounded-[2rem] border border-line bg-coal">
+              <video
+                controls
+                playsInline
+                preload="none"
+                poster={feature.videoPoster}
+                aria-label={feature.videoLabel}
+                className="h-full w-full"
+              >
+                <source src={feature.videoUrl} type="video/mp4" />
+              </video>
+            </div>
+            <p className="mt-2 text-sm text-muted">Video from {launch.name}</p>
+          </section>
+        ) : feature && (
           <a href={feature.videoUrl} target="_blank" rel="noopener noreferrer" className="btn-quiet mt-5">
             {feature.videoLabel} ↗
           </a>

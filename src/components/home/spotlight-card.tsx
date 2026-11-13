@@ -24,15 +24,16 @@ function SpotlightLabel({ week, color }: { week: string; color: string }) {
 export function SpotlightCard({ launch, week }: { launch: Launch; week: string }) {
   const type = getLaunchType(launch.type);
   const feature = FEATURED_LAUNCHES[launch.slug];
-  if (feature) {
+  const imageUrl = feature?.imageUrl ?? launch.image_url;
+  if (imageUrl) {
     return (
       <SpotlightMotion color={type.color}>
         <div className="relative aspect-[2.1/1] overflow-hidden bg-surface">
           <Image
-            src={feature.imageUrl}
-            alt={feature.imageAlt}
+            src={imageUrl}
+            alt={feature?.imageAlt ?? `Screenshot of ${launch.name}`}
             fill
-            unoptimized={!isOptimizable(feature.imageUrl)}
+            unoptimized={!isOptimizable(imageUrl)}
             sizes="(max-width: 1024px) 100vw, 480px"
             className="object-cover"
           />
@@ -48,17 +49,23 @@ export function SpotlightCard({ launch, week }: { launch: Launch; week: string }
               <Link href={`/launch/${launch.slug}`} className="hover:underline">{launch.name}</Link>
             </h3>
           </div>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-chalk/85">{feature.spotlightCopy}</p>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-chalk/85">{feature?.spotlightCopy ?? launch.tagline}</p>
           <p className="mt-4 text-sm text-muted">
             <span style={{ color: type.color }}>{type.label}</span>
             {launch.city && <> in {launch.city}</>}
-            <> · Made by {feature.makerName}</>
+            {(feature?.makerName ?? launch.maker_name) && <> · Made by {feature?.makerName ?? launch.maker_name}</>}
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-6">
             <Link href={`/launch/${launch.slug}`} className="btn">See the app</Link>
-            <a href={feature.videoUrl} target="_blank" rel="noopener noreferrer" className="font-display text-sm font-semibold text-chalk underline decoration-line underline-offset-4 hover:decoration-chalk">
-              Watch the launch clip ↗
-            </a>
+            {feature?.videoPoster ? (
+              <a href={`/launch/${launch.slug}#featured-video`} className="font-display text-sm font-semibold text-chalk underline decoration-line underline-offset-4 hover:decoration-chalk">
+                {feature.videoLabel} →
+              </a>
+            ) : feature?.videoUrl && (
+              <a href={feature.videoUrl} target="_blank" rel="noopener noreferrer" className="font-display text-sm font-semibold text-chalk underline decoration-line underline-offset-4 hover:decoration-chalk">
+                {feature.videoLabel} ↗
+              </a>
+            )}
           </div>
         </div>
       </SpotlightMotion>

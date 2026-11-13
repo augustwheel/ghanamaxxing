@@ -8,7 +8,7 @@ export const BOARDS = {
 // Spotlight of the week: picked every Monday (Accra time), the same for everyone all week.
 export const SPOTLIGHT = {
   /** Slug to feature this week instead of the automatic pick. Set to null to go back to automatic. */
-  pinned: "four-corners" as string | null,
+  pinned: "flyte" as string | null,
   /** A launch isn't picked again within this many weeks (or until everyone eligible has had a turn). */
   noRepeatWeeks: 12,
   /** How many past picks the "Past spotlights" strip shows. */

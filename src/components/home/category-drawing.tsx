@@ -93,7 +93,7 @@ export function CategoryDrawing({ type }: { type: LaunchType }) {
       strokeWidth="4.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="category-illustration pointer-events-none absolute right-1 top-1 h-24 w-24 sm:right-2 sm:top-2 sm:h-28 sm:w-28"
+      className="category-illustration pointer-events-none absolute right-2 top-2 h-20 w-20 sm:right-3 sm:top-3 sm:h-24 sm:w-24"
     >
       <g className="category-character">{drawing}</g>
       <path className="category-sparkle" d="m12 16 3-7 3 7 7 3-7 3-3 7-3-7-7-3Z" fill="currentColor" stroke="none" />
