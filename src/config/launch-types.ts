@@ -9,7 +9,6 @@ export const LAUNCH_TYPES = [
   { value: "agritech", label: "Agritech", color: "#86EFAC" },
   { value: "logistics", label: "Logistics", color: "#7DD3FC" },
   { value: "creative", label: "Creative", color: "#F472B6" },
-  { value: "student", label: "Student projects", color: "#FB923C" },
   { value: "other", label: "Other", color: "#A1A1AA" },
 ] as const;
 

@@ -107,7 +107,7 @@ body {
   }
 }
 
-/* Friendly category characters give browse cards one quick response without delaying links. */
+/* Category illustrations give browse cards one quick response without delaying links. */
 .category-card {
   transition: border-color 180ms ease, background-color 180ms ease;
 }
