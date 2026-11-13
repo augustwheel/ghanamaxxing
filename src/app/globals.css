@@ -534,3 +534,155 @@ body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
+
+/* Cedi hero, take three (lab): a girl and boy watching the real notes circle. */
+.gm-pair { position: relative; height: min(92svh, 880px); min-height: 620px; overflow: clip; background: #fff; }
+.gm-pair-word {
+  position: absolute; z-index: 40; top: 16px; left: 0; right: 0; display: flex; justify-content: center;
+  padding: 0 16px; pointer-events: none; transition: opacity 0.5s, transform 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.gm-pair-word img { height: clamp(26px, 5vw, 64px); width: auto; filter: drop-shadow(0 5px 8px rgb(0 0 0 / 0.12)); }
+.gm-pair-word img:nth-child(5) { margin-right: clamp(5px, 1.2vw, 16px); }
+.gm-pair.is-open .gm-pair-word { opacity: 0; transform: translateY(-12px); }
+/* One 3D scene for the pair and the ring, so notes really pass in front of and behind them. */
+.gm-pair-stage { position: absolute; inset: 0; perspective: 1400px; transform-style: preserve-3d; touch-action: pan-y; cursor: grab; }
+.gm-pair-stage:active { cursor: grabbing; }
+.gm-pair-front { position: absolute; inset: 0; z-index: 50; perspective: 1400px; pointer-events: none; }
+.gm-pair-front .gm-open { pointer-events: auto; }
+.gm-pair-people {
+  position: absolute; z-index: 20; left: 0; right: 0; bottom: 0; height: 68%; display: flex; justify-content: center;
+  transform-origin: 50% 100%; transform: translateZ(0); pointer-events: none; user-select: none;
+}
+.gm-pair-people img {
+  display: block; height: 100%; width: auto; max-width: none; flex: none;
+  transform-origin: 50% 100%; animation: gm-breathe 5.5s ease-in-out infinite;
+}
+@keyframes gm-breathe { 50% { transform: scale(1.006, 1.012); } }
+.gm-pair-card {
+  position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  transform-style: preserve-3d; will-change: transform;
+}
+.gm-pair-card:focus-visible { outline: 3px solid #17181c; outline-offset: 4px; border-radius: 6px; }
+
+/* Paper strips (src/components/cedi/paper.ts). */
+.pp { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+.pp-s {
+  position: absolute; transform-style: preserve-3d;
+  --a: calc(var(--cc, 0) + var(--ws, 0) * var(--ci, 0) + var(--wc, 0) * var(--si, 0));
+}
+.pp-right, .pp-left { top: 0; }
+.pp-right, .pp-up, .pp-down { --cc: var(--cr, 0); }
+.pp-left { --cc: var(--cl, 0); }
+.pp-up, .pp-down { left: 0; }
+.pp-right { transform-origin: 0 50%; transform: rotateY(calc(var(--a) * 1deg)); }
+.pp-left { transform-origin: 100% 50%; transform: rotateY(calc(var(--a) * -1deg)); }
+.pp-down { transform-origin: 50% 0; transform: rotateX(calc(var(--a) * -1deg)); }
+.pp-up { transform-origin: 50% 100%; transform: rotateX(calc(var(--a) * 1deg)); }
+.pp-s > .pp-right { left: 100%; }
+.pp-s > .pp-left { left: auto; right: 100%; }
+.pp-s > .pp-down { top: 100%; }
+.pp-s > .pp-up { top: auto; bottom: 100%; }
+.pp-f { position: absolute; inset: 0 -0.4px; backface-visibility: hidden; background-repeat: no-repeat; opacity: var(--o, 1); transition: opacity 0.4s; }
+.pp-up > .pp-f, .pp-down > .pp-f { inset: -0.4px 0; }
+
+.gm-open { position: absolute; z-index: 50; left: 0; top: 0; transform-style: preserve-3d; will-change: transform; }
+.gm-open-base {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border-radius: 2px;
+  box-shadow: 0 24px 40px -18px rgb(20 20 30 / 0.35);
+}
+.gm-open-page { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 100% 50%; }
+.gm-open-page.is-phone { transform-origin: 50% 100%; }
+.gm-pair-caption {
+  position: absolute; z-index: 45; left: 16px; right: 16px; bottom: 34px; text-align: center; pointer-events: none;
+}
+.gm-pair-caption-open { opacity: 0; transform: translateY(10px); }
+.gm-pair-hint {
+  display: inline-block; padding: 8px 14px; border-radius: 999px; background: rgb(255 255 255 / 0.85);
+  backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+}
+.gm-pair-close {
+  position: absolute; z-index: 60; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 999px;
+  display: grid; place-items: center; background: #17181c; color: #fff; cursor: pointer; opacity: 0; transform: scale(0.6);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+}
+.gm-pair-credit { position: absolute; z-index: 45; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 0.68rem; color: #9a9da4; }
+@media (max-width: 639px) {
+  .gm-pair-people { height: 54%; }
+}
+@media (prefers-reduced-motion: reduce) { .gm-pair-people img { animation: none; } }
+
+/* Cedi hero, the band (lab): the notes as one ribbon bent round a cylinder. */
+.gm-band { position: relative; height: min(92svh, 880px); min-height: 620px; overflow: clip; background: #f4f4f2; }
+.gm-band-word {
+  position: absolute; z-index: 40; top: 16px; left: 0; right: 0; display: flex; justify-content: center;
+  padding: 0 16px; pointer-events: none;
+}
+.gm-band-word img { height: clamp(26px, 5vw, 64px); width: auto; filter: drop-shadow(0 5px 8px rgb(0 0 0 / 0.12)); }
+.gm-band-word img:nth-child(5) { margin-right: clamp(5px, 1.2vw, 16px); }
+.gm-band-stage { position: absolute; inset: 0; z-index: 2; perspective: 1300px; transform-style: preserve-3d; touch-action: pan-y; cursor: grab; }
+.gm-band-stage:active { cursor: grabbing; }
+.gm-band-ring { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.gm-band-card {
+  position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  transform-style: preserve-3d; transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
+}
+.gm-band-card:focus-visible { outline: 3px solid #17181c; outline-offset: 4px; }
+.gm-band-front { position: absolute; inset: 0; z-index: 50; perspective: 1400px; pointer-events: none; }
+.gm-band-front .gm-open { pointer-events: auto; }
+.gm-band-caption { position: absolute; z-index: 45; left: 16px; right: 16px; bottom: 34px; text-align: center; pointer-events: none; }
+.gm-band-caption-open { opacity: 0; transform: translateY(10px); }
+.gm-band-hint {
+  display: inline-block; padding: 8px 14px; border-radius: 999px; background: rgb(255 255 255 / 0.85);
+  backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
+}
+.gm-band-close {
+  position: absolute; z-index: 60; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 999px;
+  display: grid; place-items: center; background: #17181c; color: #fff; cursor: pointer; opacity: 0; transform: scale(0.6);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+}
+.gm-band-credit { position: absolute; z-index: 45; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 0.68rem; color: #9a9da4; }
+.gm-band-card .pp-f { border-radius: 1px; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.06); }
+.gm-band-card .pp-f::after { content: ""; position: absolute; inset: 0; background: #0d0d10; opacity: var(--shf, 0); pointer-events: none; }
+.gm-band-card .pp-b::after { opacity: var(--shb, 0.1); }
+.gm-band-shadow {
+  position: absolute; left: 50%; height: 90px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgb(20 20 30 / 0.16), transparent); filter: blur(6px);
+}
+@media (max-width: 639px) { .gm-band { height: min(80svh, 680px); min-height: 540px; } }
+/* The flag in the middle of the band. */
+.gm-flag-pole {
+  position: absolute; width: 6px; pointer-events: none;
+  background: linear-gradient(90deg, #8e939b, #f4f5f7 40%, #b9bec6 60%, #6f747c);
+  box-shadow: 2px 0 6px rgb(0 0 0 / 0.12);
+}
+.gm-flag-pole-low { z-index: 1; bottom: 0; border-radius: 0 0 3px 3px; }
+.gm-flag-pole-high { border-radius: 3px 3px 0 0; }
+.gm-flag-layer { position: absolute; inset: 0; z-index: 3; perspective: 1300px; pointer-events: none; transform-style: preserve-3d; }
+.gm-flag-pole-high::before {
+  content: ""; position: absolute; left: 50%; top: -12px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #c4c8cf 45%, #7c8189);
+}
+.gm-flag-cloth { position: absolute; display: block; pointer-events: none; }
+.gm-flag-layer, .gm-flag-pole-low { transition: opacity 0.6s; }
+.gm-band.is-open .gm-flag-layer, .gm-band.is-open .gm-flag-pole-low { opacity: 0.12; }
+
+/* Band themes. Light is the default; dark sits on the site's graphite. */
+.gm-band { --band-ink: #17181c; --band-soft: #5b5e66; }
+.gm-band-dark {
+  --band-ink: #e8e8ee; --band-soft: #a3a3b0;
+  background: radial-gradient(110% 80% at 50% 45%, #2a2a31 0%, #1b1b1f 62%, #131316 100%);
+}
+.gm-band-dark .gm-band-hint { background: rgb(35 35 40 / 0.85); box-shadow: 0 4px 14px rgb(0 0 0 / 0.35); }
+.gm-band-dark .gm-band-credit { color: #74747f; }
+.gm-band-dark .gm-band-shadow { background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent); }
+.gm-band-dark .gm-band-close { background: #f2f3f5; color: #17181c; }
+/* Dark band: the Adinkra wall from the original hero, black on black, pressed into the background. It eases off
+   toward the middle so it never fights the notes and the flag. */
+.gm-band-dark { isolation: isolate; }
+.gm-band-dark::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url("/hero/adinkra-pattern.svg") center / 400px auto;
+  -webkit-mask-image: radial-gradient(75% 65% at 50% 50%, rgb(0 0 0 / 0.55), #000 80%);
+  mask-image: radial-gradient(75% 65% at 50% 50%, rgb(0 0 0 / 0.55), #000 80%);
+}
+@media (max-width: 639px) { .gm-band-dark::before { background-size: 300px auto; } }

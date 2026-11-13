@@ -36,7 +36,18 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 
 ## Architecture map
 
-- `src/components/hero/hero.tsx`: letter grid (3 per row on phones, GHANA/MAXXING wide) and the walk-out
+- `src/components/cedi/cedi-band-hero.tsx`: **the home hero since Nov 2026**, for Ghana's new Heritage Series cedi
+  notes. The eight real notes (Bank of Ghana images, credited on the page; `src/config/cedi-notes.ts`, files in
+  `public/hero/cedi`, `-sm` versions for the ring) as one ribbon bent round a cylinder in CSS 3D, tilted so the
+  fronts show near and the backs inside; drag to spin, tap to open a note (GSAP: it flies out and its back turns
+  over like a page). Notes bend because each is cut into strips (`paper.ts`). In the middle, Ghana's flag on a pole:
+  a live cloth simulation drawn with plain WebGL (`shader-flag.tsx`), matte, never loops, about 1 ms a step. Dark
+  theme on the Adinkra wall, black on black. The pole is split at the ring's middle and layered by hand because
+  the browser's 3D depth sort drew it over the near notes. Rejected along the way, so don't bring back without
+  asking: tribute/fake notes, kente stripe borders, a green or flag-filled map, the word inside the map, cash
+  bundles, POV hands, glossy flags, any looping or crossfaded flag video, sine-wave flags. `/lab/cedi` shows the
+  band (`?theme=dark`, `?v=pair` for the unfinished girl-and-boy version with stand-in characters).
+- `src/components/hero/hero.tsx`: the original hero, not on the home page while the cedi band is up. Letter grid (3 per row on phones, GHANA/MAXXING wide) and the walk-out
   sequencer: two reusable `<video>` players, overlapping chain, rest after a cycle, a cut inside the letter so
   nothing shows through its gaps, Safari Low Power Mode unlock. A frame-by-frame loop fires the bump and handoff and
   pushes characters home. Per-character tuning (`feet`, `edge`, `handoffAt`, `bumpAt`, `exit`) is in
@@ -87,3 +98,6 @@ made. Built by Augustine Osei (August Engine) in one night, launched on X/Linked
 - `hero.tsx` was reformatted mid-session; formatting is inconsistent with the rest (no Prettier config in repo).
 - Safari HEVC playback was only tested via a Chrome simulation of Safari's autoplay rules, not in real Safari.
 - Listings with no city have no map pin, so the map legend leaves them out.
+- The cedi band was only checked in Chrome (desktop and phone sizes). Safari and real budget Android phones (the
+  flag's cloth sim) still need a look. The Bank of Ghana asks for prior approval to use cedi images; the owner
+  chose to use them with credit. Swap the hero back to `<Hero />` in `src/app/page.tsx` when the moment passes.

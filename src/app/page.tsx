@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Hero } from "@/components/hero/hero";
+import { CediBandHero } from "@/components/cedi/cedi-band-hero";
 import { CategoryGrid } from "@/components/home/category-grid";
 import { JsonLd } from "@/components/json-ld";
 import { RankingsPreview } from "@/components/home/rankings-preview";
@@ -34,7 +34,9 @@ export default async function HomePage() {
           publisher: { "@type": "Organization", name: "August Engine", url: "https://www.augustengine.com" },
         }}
       />
-      <Hero />
+      {/* The cedi band, for Ghana's new Heritage Series notes (Nov 2026). The letters hero it replaced is
+          still in src/components/hero/hero.tsx: swap it back with <Hero /> when the moment has passed. */}
+      <CediBandHero theme="dark" />
 
       <div className="gm-adinkra">
       <section className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-24">
