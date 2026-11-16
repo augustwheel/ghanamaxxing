@@ -73,7 +73,7 @@
     },
     {
       "id": "schedule",
-      "name": "Every 10 minutes",
+      "name": "Every 4 hours",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -84,8 +84,9 @@
         "rule": {
           "interval": [
             {
-              "field": "minutes",
-              "minutesInterval": 10
+              "field": "hours",
+              "hoursInterval": 4,
+              "triggerAtMinute": 0
             }
           ]
         }
@@ -172,7 +173,7 @@
         ]
       ]
     },
-    "Every 10 minutes": {
+    "Every 4 hours": {
       "main": [
         [
           {

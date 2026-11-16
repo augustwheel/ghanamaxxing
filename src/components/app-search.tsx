@@ -12,7 +12,7 @@ let searchIndexAt = 0;
 function loadSearchIndex() {
   if (!searchIndex || Date.now() - searchIndexAt > 60_000) {
     searchIndexAt = Date.now();
-    searchIndex = fetch("/api/search", { cache: "no-store" })
+    searchIndex = fetch("/api/search")
       .then((response) => {
         if (!response.ok) throw new Error("Search unavailable");
         return response.json() as Promise<SearchItem[]>;

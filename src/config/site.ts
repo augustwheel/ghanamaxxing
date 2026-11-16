@@ -9,6 +9,7 @@ export const SITE = {
   nav: [
     { href: "/launches", label: "Explore" },
     { href: "/map", label: "Map" },
+    { href: "/resources", label: "Resources" },
     { href: "/submit", label: "Add yours" },
   ],
   footer: [

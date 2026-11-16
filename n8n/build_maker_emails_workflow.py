@@ -2,7 +2,7 @@
 
 usage: python3 n8n/build_maker_emails_workflow.py
 
-A webhook that sends an email to whoever submitted a listing, and a schedule that asks the site every 10 minutes to email
+A webhook that sends an email to whoever submitted a listing, and a schedule that asks the site every four hours to email
 anyone whose listing has been approved, and to find logos for new listings without one. Reads ALERT_WEBHOOK_SECRET from this repo's .env.local and the n8n API key
 from August Engine's. Writes a copy to n8n/ghanamaxxing-maker-emails.json with the secret taken out. Only touches this workflow.
 """
@@ -58,8 +58,8 @@ def workflow(secret):
              "credentials": {"gmailOAuth2": {"id": "XSli9zjeTSRhQNLt", "name": "Gmail account"}},
              "parameters": {"sendTo": "={{ $json.to }}", "subject": "={{ $json.subject }}", "message": "={{ $json.html }}",
                             "options": {"appendAttribution": False, "senderName": "Ghanamaxxing", "replyTo": "={{ $json.replyTo }}"}}},
-            {"id": "schedule", "name": "Every 10 minutes", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [0, 360],
-             "parameters": {"rule": {"interval": [{"field": "minutes", "minutesInterval": 10}]}}},
+            {"id": "schedule", "name": "Every 4 hours", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [0, 360],
+             "parameters": {"rule": {"interval": [{"field": "hours", "hoursInterval": 4, "triggerAtMinute": 0}]}}},
             {"id": "job", "name": "Ask the site to email approved listings", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [240, 360],
              "onError": "continueRegularOutput",
              "parameters": {"method": "POST", "url": SITE_JOB, "sendHeaders": True,
@@ -72,7 +72,7 @@ def workflow(secret):
         "connections": {
             "Site webhook": {"main": [[{"node": "Respond immediately", "type": "main", "index": 0}, {"node": "Check secret and build email", "type": "main", "index": 0}]]},
             "Check secret and build email": {"main": [[{"node": "Email the maker", "type": "main", "index": 0}]]},
-            "Every 10 minutes": {"main": [[{"node": "Ask the site to email approved listings", "type": "main", "index": 0}, {"node": "Ask the site to find logos", "type": "main", "index": 0}]]},
+            "Every 4 hours": {"main": [[{"node": "Ask the site to email approved listings", "type": "main", "index": 0}, {"node": "Ask the site to find logos", "type": "main", "index": 0}]]},
         },
         "settings": {"executionOrder": "v1"},
     }
